@@ -1,0 +1,51 @@
+﻿<UserControl x:Class="SistemaMonitoreoProyectos.Views.UserControls.WidgetCreateTaskView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Encabezado del Widget -->
+        <StackPanel Grid.Row="0" HorizontalAlignment="Center" Margin="0,0,0,15">
+            <Border Width="30" Height="4" Background="{StaticResource BrocheBordeTarjeta}" CornerRadius="2" Margin="0,0,0,10"/>
+            <TextBlock Text="PSP TRACKER" FontSize="12" FontWeight="Bold" Foreground="{StaticResource BrocheTextoSecundario}"/>
+        </StackPanel>
+
+        <!-- Formulario de Entrada -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="0,5">
+
+                <!-- Campo: Título de la Actividad -->
+                <TextBlock Text="Título de la actividad" Style="{StaticResource EstiloTextoEtiqueta}" Margin="0,0,0,6"/>
+                <TextBox x:Name="TextoTituloActividad" Style="{StaticResource EstiloCampoTexto}" Margin="0,0,0,14"/>
+
+                <!-- Campo: Descripción -->
+                <TextBlock Text="Descripción" Style="{StaticResource EstiloTextoEtiqueta}" Margin="0,0,0,6"/>
+                <TextBox x:Name="TextoDescripcionActividad" Style="{StaticResource EstiloCampoTexto}" Height="70" TextWrapping="Wrap" AcceptsReturn="True" VerticalContentAlignment="Top" Margin="0,0,0,14"/>
+
+                <!-- Campo: Responsable -->
+                <TextBlock Text="Responsable" Style="{StaticResource EstiloTextoEtiqueta}" Margin="0,0,0,6"/>
+                <TextBox x:Name="TextoResponsable" Style="{StaticResource EstiloCampoTexto}" Margin="0,0,0,14"/>
+
+                <!-- Campo: Tiempo Estimado (Horas) -->
+                <TextBlock Text="Tiempo estimado (horas)" Style="{StaticResource EstiloTextoEtiqueta}" Margin="0,0,0,6"/>
+                <TextBox x:Name="TextoTiempoEstimado" Style="{StaticResource EstiloCampoTexto}" Text="0.0" Margin="0,0,0,10"/>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Acciones Inferiores -->
+        <StackPanel Grid.Row="2" Margin="0,15,0,0">
+            <Button x:Name="BotonSiguiente" Content="SIGUIENTE  ➔" Style="{StaticResource EstiloBotonPrimario}" Height="45" Margin="0,0,0,12" Click="BotonSiguiente_Click"/>
+            
+            <Button x:Name="BotonCargarExistente" Background="Transparent" BorderThickness="0" Cursor="Hand">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <TextBlock Text="↺ " Foreground="{StaticResource BrocheTextoSecundario}" FontSize="13"/>
+                    <TextBlock Text="Continuar con una actividad ya creada" Foreground="{StaticResource BrocheTextoSecundario}" FontSize="13" TextDecorations="Underline"/>
+                </StackPanel>
+            </Button>
+        </StackPanel>
+    </Grid>
+</UserControl>

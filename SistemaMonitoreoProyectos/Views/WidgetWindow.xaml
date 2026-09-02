@@ -1,0 +1,26 @@
+﻿<Window x:Class="SistemaMonitoreoProyectos.Views.WidgetWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="PSP Tracker Widget" 
+        Height="540" Width="340"
+        WindowStyle="None" 
+        AllowsTransparency="True" 
+        Background="Transparent"
+        Topmost="True" 
+        WindowStartupLocation="CenterScreen" 
+        ResizeMode="NoResize"
+        MouseDown="Ventana_MouseDown">
+    
+    <!-- Contenedor redondeado sin bordes de sistema -->
+    <Border Background="{StaticResource BrocheFondoVentana}"
+            BorderBrush="{StaticResource BrocheBordeTarjeta}"
+            BorderThickness="1"
+            CornerRadius="20"
+            Padding="20">
+        
+        <Grid>
+            <!-- Área dinámica donde se intercambiarán los UserControls -->
+            <ContentControl x:Name="ControlContenidoVista"/>
+        </Grid>
+    </Border>
+</Window>

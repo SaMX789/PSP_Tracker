@@ -1,0 +1,100 @@
+﻿<Window x:Class="SistemaMonitoreoProyectos.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="PSP Tracker - Dashboard" 
+        Height="800" Width="1280"
+        MinHeight="720" MinWidth="1024"
+        Background="{StaticResource BrocheFondoVentana}"
+        WindowStartupLocation="CenterScreen">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <!-- Panel Izquierdo: Lista de Proyectos/Actividades -->
+            <ColumnDefinition Width="260"/>
+            <!-- Área Central: Contenido Dinámico de las Vistas -->
+            <ColumnDefinition Width="*"/>
+            <!-- Panel Derecho: Menú de Navegación por Iconos -->
+            <ColumnDefinition Width="65"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- ========================================== -->
+        <!-- PANEL IZQUIERDO: PROYECTOS Y ACTIVIDADES  -->
+        <!-- ========================================== -->
+        <Border Grid.Column="0" Background="{StaticResource BrocheFondoSecundario}" BorderBrush="{StaticResource BrocheBordeTarjeta}" BorderThickness="0,0,1,0" Padding="16">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Text="Actividades" Style="{StaticResource EstiloTextoTituloGrande}" FontSize="20" Margin="0,0,0,20"/>
+                <TextBlock Grid.Row="1" Text="PROYECTOS ACTIVOS" Style="{StaticResource EstiloTextoEtiqueta}" Margin="0,0,0,10"/>
+
+                <!-- Lista de Proyectos/Actividades Activas -->
+                <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+                    <StackPanel x:Name="ContenedorProyectosActivos">
+                        <!-- Tarjeta Seleccionada por Defecto -->
+                        <Border Style="{StaticResource EstiloTarjetaBase}" Background="#283244" BorderBrush="{StaticResource BrocheAcentoPrimario}" Margin="0,0,0,10" Padding="12" Cursor="Hand">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="💻 " FontSize="14" VerticalAlignment="Center"/>
+                                <TextBlock Text="APP WEB 1" Foreground="{StaticResource BrocheTextoPrincipal}" FontWeight="Bold" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- Botón Agregar Nueva Actividad -->
+                <Button Grid.Row="3" x:Name="BotonAgregarNuevaActividad" Style="{StaticResource EstiloBotonSecundario}" Height="45" Margin="0,10,0,0" Click="BotonAgregarNuevaActividad_Click_1">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                        <TextBlock Text="+  " FontSize="16" FontWeight="Bold"/>
+                        <TextBlock Text="AGREGAR NUEVA ACTIVIDAD" FontSize="12" FontWeight="Bold"/>
+                    </StackPanel>
+                </Button>
+            </Grid>
+        </Border>
+
+        <!-- ========================================== -->
+        <!-- ÁREA CENTRAL: VISTA ACTUAL                -->
+        <!-- ========================================== -->
+        <Grid Grid.Column="1" Margin="24">
+            <ContentControl x:Name="ControlContenidoDashboard"/>
+        </Grid>
+
+        <!-- ========================================== -->
+        <!-- PANEL DERECHO: BARRA DE NAVEGACIÓN ICONOS -->
+        <!-- ========================================== -->
+        <Border Grid.Column="2" Background="{StaticResource BrocheFondoSecundario}" BorderBrush="{StaticResource BrocheBordeTarjeta}" BorderThickness="1,0,0,0" Padding="0,20">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Avatar Usuario Top -->
+                <Border Grid.Row="0" Width="36" Height="36" CornerRadius="18" Background="{StaticResource BrocheAcentoPrimario}" HorizontalAlignment="Center" Margin="0,0,0,30">
+                    <TextBlock Text="W" Foreground="#121214" FontWeight="Bold" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+
+                <!-- Botones de Navegación por Pestañas -->
+                <StackPanel Grid.Row="1" HorizontalAlignment="Center">
+                    <Button x:Name="BotonNavegarOverview" Style="{StaticResource EstiloBotonSecundario}" Width="44" Height="44" Padding="0" Margin="0,0,0,12" ToolTip="Resumen Postmortem">
+                        <TextBlock Text="📊" FontSize="18"/>
+                    </Button>
+                    <Button x:Name="BotonNavegarTimeLog" Style="{StaticResource EstiloBotonSecundario}" Width="44" Height="44" Padding="0" Margin="0,0,0,12" ToolTip="Registro de Tiempo">
+                        <TextBlock Text="⏱" FontSize="18"/>
+                    </Button>
+                    <Button x:Name="BotonNavegarDefectLog" Style="{StaticResource EstiloBotonSecundario}" Width="44" Height="44" Padding="0" Margin="0,0,0,12" ToolTip="Bitácora de Defectos">
+                        <TextBlock Text="🐞" FontSize="18"/>
+                    </Button>
+                </StackPanel>
+
+                <!-- Icono Configuración Bottom -->
+                <Button Grid.Row="2" x:Name="BotonConfiguracion" Style="{StaticResource EstiloBotonSecundario}" Width="44" Height="44" Padding="0" HorizontalAlignment="Center">
+                    <TextBlock Text="⚙" FontSize="18"/>
+                </Button>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

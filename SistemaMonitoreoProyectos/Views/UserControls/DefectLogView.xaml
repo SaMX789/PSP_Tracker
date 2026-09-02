@@ -1,0 +1,91 @@
+﻿<UserControl x:Class="SistemaMonitoreoProyectos.Views.UserControls.DefectLogView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Encabezado -->
+        <Grid Grid.Row="0" Margin="0,0,0,20">
+            <StackPanel HorizontalAlignment="Left">
+                <TextBlock Text="/  APP WEB 1  /  DEFECT LOG" Style="{StaticResource EstiloTextoEtiqueta}" Margin="0,0,0,4"/>
+                <TextBlock Text="Bitácora de Defectos" Style="{StaticResource EstiloTextoTituloGrande}"/>
+                <TextBlock Text="Historial detallado de errores detectados y corregidos durante el proyecto." Style="{StaticResource EstiloTextoSubtitulo}" Margin="0,4,0,0"/>
+            </StackPanel>
+
+            <Border HorizontalAlignment="Right" VerticalAlignment="Top" Style="{StaticResource EstiloTarjetaBase}" Padding="10,6">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="📅 " FontSize="12"/>
+                    <TextBlock Text="Semana 42" Foreground="{StaticResource BrocheTextoPrincipal}" FontSize="12"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Tabla DataGrid de Defectos -->
+        <Border Grid.Row="1" Style="{StaticResource EstiloTarjetaBase}" Padding="0">
+            <ListView x:Name="ListaDefectos" Background="Transparent" BorderThickness="0" Foreground="{StaticResource BrocheTextoPrincipal}">
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Header="DESCRIPCIÓN" Width="320">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Margin="4">
+                                        <TextBlock Text="↳ " Foreground="#FF4D4D" FontWeight="Bold" Visibility="{Binding EsAnidadoVisibility}"/>
+                                        <TextBlock Text="{Binding DescripcionError}" Foreground="{StaticResource BrocheTextoPrincipal}"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+
+                        <GridViewColumn Header="FASE ORIGEN" Width="130">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border Background="#202B42" CornerRadius="6" Padding="8,3" HorizontalAlignment="Left">
+                                        <TextBlock Text="{Binding FaseOrigen}" Foreground="#60A5FA" FontSize="11" FontWeight="Bold"/>
+                                    </Border>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+
+                        <GridViewColumn Header="FASE DETECCIÓN" Width="130">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border Background="#3B2020" CornerRadius="6" Padding="8,3" HorizontalAlignment="Left">
+                                        <TextBlock Text="{Binding FaseDeteccion}" Foreground="#FF6B6B" FontSize="11" FontWeight="Bold"/>
+                                    </Border>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+
+                        <GridViewColumn Header="TIEMPO CORRECCIÓN" Width="150">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding TiempoCorreccionFormatted}" Foreground="{StaticResource BrocheTextoPrincipal}" HorizontalAlignment="Right" Margin="8,4"/>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+
+                        <GridViewColumn Header="TIPO" Width="120">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding TipoDefectoTexto}" Foreground="{Binding TipoDefectoColor}" FontWeight="Bold" HorizontalAlignment="Center" Margin="8,4"/>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                    </GridView>
+                </ListView.View>
+            </ListView>
+        </Border>
+
+        <!-- Pie de Tabla: Total de Corrección -->
+        <Border Grid.Row="2" Style="{StaticResource EstiloTarjetaBase}" Margin="0,10,0,0" Padding="16,12">
+            <Grid>
+                <TextBlock Text="Tiempo Total de Corrección" Foreground="{StaticResource BrocheTextoPrincipal}" FontWeight="Bold"/>
+                <TextBlock x:Name="TextoTiempoTotalDefectos" Text="55 min" Foreground="#FF4D4D" FontWeight="Bold" FontSize="16" HorizontalAlignment="Right"/>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

@@ -1,0 +1,209 @@
+﻿<Application x:Class="SistemaMonitoreoProyectos.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             StartupUri="MainWindow.xaml">
+          <!--  StartupUri="Views/WidgetWindow.xaml"> -->
+    
+    <Application.Resources>
+
+        <!-- 1. PALETA DE COLORES -->
+        
+        <!-- Fondos Base -->
+        <Color x:Key="ColorFondoVentana">#121214</Color>
+        <Color x:Key="ColorFondoTarjeta">#1E1E22</Color>
+        <Color x:Key="ColorFondoSecundario">#16161A</Color>
+        <Color x:Key="ColorBordeTarjeta">#2D2D35</Color>
+
+        <!-- Colores de Acento y Estado -->
+        <Color x:Key="ColorAcentoPrimario">#9EA8FF</Color>
+        <Color x:Key="ColorAcentoPrimarioHover">#B0B8FF</Color>
+        <Color x:Key="ColorDefectoError">#FF4D4D</Color>
+        <Color x:Key="ColorDefectoErrorHover">#FF6B6B</Color>
+
+        <!-- Badges / Insignias -->
+        <Color x:Key="ColorEstadoEnCursoFondo">#202B42</Color>
+        <Color x:Key="ColorEstadoEnCursoTexto">#60A5FA</Color>
+        <Color x:Key="ColorEstadoTerminadoFondo">#27272A</Color>
+        <Color x:Key="ColorEstadoTerminadoTexto">#A1A1AA</Color>
+
+        <!-- Textos -->
+        <Color x:Key="ColorTextoPrincipal">#FFFFFF</Color>
+        <Color x:Key="ColorTextoSecundario">#8E8E93</Color>
+        <Color x:Key="ColorTextoDeshabilitado">#52525B</Color>
+
+        <!-- 2. PINCELES (SOLID COLOR BRUSHES)          -->
+        
+        <SolidColorBrush x:Key="BrocheFondoVentana" Color="{StaticResource ColorFondoVentana}"/>
+        <SolidColorBrush x:Key="BrocheFondoTarjeta" Color="{StaticResource ColorFondoTarjeta}"/>
+        <SolidColorBrush x:Key="BrocheFondoSecundario" Color="{StaticResource ColorFondoSecundario}"/>
+        <SolidColorBrush x:Key="BrocheBordeTarjeta" Color="{StaticResource ColorBordeTarjeta}"/>
+
+        <SolidColorBrush x:Key="BrocheAcentoPrimario" Color="{StaticResource ColorAcentoPrimario}"/>
+        <SolidColorBrush x:Key="BrocheAcentoPrimarioHover" Color="{StaticResource ColorAcentoPrimarioHover}"/>
+        <SolidColorBrush x:Key="BrocheDefectoError" Color="{StaticResource ColorDefectoError}"/>
+        <SolidColorBrush x:Key="BrocheDefectoErrorHover" Color="{StaticResource ColorDefectoErrorHover}"/>
+
+        <SolidColorBrush x:Key="BrocheEstadoEnCursoFondo" Color="{StaticResource ColorEstadoEnCursoFondo}"/>
+        <SolidColorBrush x:Key="BrocheEstadoEnCursoTexto" Color="{StaticResource ColorEstadoEnCursoTexto}"/>
+        <SolidColorBrush x:Key="BrocheEstadoTerminadoFondo" Color="{StaticResource ColorEstadoTerminadoFondo}"/>
+        <SolidColorBrush x:Key="BrocheEstadoTerminadoTexto" Color="{StaticResource ColorEstadoTerminadoTexto}"/>
+
+        <SolidColorBrush x:Key="BrocheTextoPrincipal" Color="{StaticResource ColorTextoPrincipal}"/>
+        <SolidColorBrush x:Key="BrocheTextoSecundario" Color="{StaticResource ColorTextoSecundario}"/>
+        <SolidColorBrush x:Key="BrocheTextoDeshabilitado" Color="{StaticResource ColorTextoDeshabilitado}"/>
+
+        <!-- 3. ESTILOS DE CONTROLES REUTILIZABLES      -->
+        
+        <!-- Estilo Contenedor / Tarjeta Base -->
+        <Style x:Key="EstiloTarjetaBase" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource BrocheFondoTarjeta}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BrocheBordeTarjeta}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="16"/>
+        </Style>
+
+        <!-- Estilo Botón Primario (Azul/Lavanda) -->
+        <Style x:Key="EstiloBotonPrimario" TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource BrocheAcentoPrimario}"/>
+            <Setter Property="Foreground" Value="#121214"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="16,10"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="borde" 
+                                Background="{TemplateBinding Background}" 
+                                CornerRadius="8" 
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="borde" Property="Background" Value="{StaticResource BrocheAcentoPrimarioHover}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="borde" Property="Background" Value="{StaticResource BrocheTextoDeshabilitado}"/>
+                                <Setter Property="Foreground" Value="#8E8E93"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Estilo Botón de Defectos / Peligro (Rojo) -->
+        <Style x:Key="EstiloBotonDefecto" TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource BrocheDefectoError}"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="16,10"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="borde" 
+                                Background="{TemplateBinding Background}" 
+                                CornerRadius="8" 
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="borde" Property="Background" Value="{StaticResource BrocheDefectoErrorHover}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Estilo Botón Secundario / Oscuro -->
+        <Style x:Key="EstiloBotonSecundario" TargetType="Button">
+            <Setter Property="Background" Value="#2A2A30"/>
+            <Setter Property="Foreground" Value="{StaticResource BrocheTextoPrincipal}"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="16,10"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="borde" 
+                                Background="{TemplateBinding Background}" 
+                                CornerRadius="8" 
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="borde" Property="Background" Value="#35353C"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Estilo Campo de Texto (TextBox) Dark Mode -->
+        <Style x:Key="EstiloCampoTexto" TargetType="TextBox">
+            <Setter Property="Background" Value="#242429"/>
+            <Setter Property="Foreground" Value="{StaticResource BrocheTextoPrincipal}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BrocheBordeTarjeta}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="CaretBrush" Value="{StaticResource BrocheAcentoPrimario}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="borde" 
+                                Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                CornerRadius="8">
+                            <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsFocused" Value="True">
+                                <Setter TargetName="borde" Property="BorderBrush" Value="{StaticResource BrocheAcentoPrimario}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Estilo Desplegable (ComboBox) Dark Mode -->
+        <Style x:Key="EstiloDesplegable" TargetType="ComboBox">
+            <Setter Property="Background" Value="#242429"/>
+            <Setter Property="Foreground" Value="{StaticResource BrocheTextoPrincipal}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BrocheBordeTarjeta}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+
+        <!-- Estilos para Textos -->
+        <Style x:Key="EstiloTextoTituloGrande" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource BrocheTextoPrincipal}"/>
+            <Setter Property="FontSize" Value="24"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
+
+        <Style x:Key="EstiloTextoSubtitulo" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource BrocheTextoSecundario}"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+
+        <Style x:Key="EstiloTextoEtiqueta" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource BrocheTextoSecundario}"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+
+    </Application.Resources>
+</Application>
