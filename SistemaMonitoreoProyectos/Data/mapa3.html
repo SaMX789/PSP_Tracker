@@ -36,6 +36,7 @@
       <ul>
         <li class="table"><a href="#Actividades">Actividades</a></li>
         <li class="table"><a href="#EstadoSesion">EstadoSesion</a></li>
+        <li class="table"><a href="#Fases">Fases</a></li>
         <li class="table"><a href="#Interrupciones">Interrupciones</a></li>
         <li class="table"><a href="#RegistrosDefectos">RegistrosDefectos</a></li>
         <li class="table"><a href="#RegistrosEsfuerzo">RegistrosEsfuerzo</a></li>
@@ -63,7 +64,7 @@
           </tr>
           <tr>
             <td class="type">DatabaseSize</td>
-            <td class="type">28 KB</td>
+            <td class="type">36 KB</td>
           </tr>
           <tr>
             <td class="type">Created</td>
@@ -164,14 +165,13 @@
             <th>ActividadId</th>
             <td class="type">bigint</td>
             <td class="null">☒</td>
-            <td><span class="flag" title="FK_EstadoSesion_0_0">⇨ <a href="#Actividades">Actividades</a>.Id</span></td>
+            <td><span class="flag" title="FK_EstadoSesion_1_0">⇨ <a href="#Actividades">Actividades</a>.Id</span></td>
           </tr>
           <tr>
-            <th>FaseActual</th>
-            <td class="type">text</td>
+            <th>FaseActualId</th>
+            <td class="type">bigint</td>
             <td class="null">☒</td>
-            <td>
-            </td>
+            <td><span class="flag" title="FK_EstadoSesion_0_0">⇨ <a href="#Fases">Fases</a>.Id</span></td>
           </tr>
           <tr>
             <th>EstadoCronometro</th>
@@ -196,6 +196,48 @@
             <th>UltimaActualizacion</th>
             <td class="type">text</td>
             <td class="null">☒</td>
+            <td>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="table">
+      <h2 id="Fases"><a href="#toc" class="tocref">⇧</a>Table Fases</h2>
+      <table>
+        <thead>
+          <tr>
+            <th style="width:30ex">Name</th>
+            <th style="width:20ex">Type</th>
+            <th style="width:4ex">NULL</th>
+            <th>Comment</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th><span class="pk" title="PRIMARY KEY sqlite_master_PK_Fases">◆</span>Id</th>
+            <td class="type">bigint</td>
+            <td class="null">☐</td>
+            <td><span class="flag">IDENTITY (1,1)</span></td>
+          </tr>
+          <tr>
+            <th>Nombre</th>
+            <td class="type">text</td>
+            <td class="null">☐</td>
+            <td>
+            </td>
+          </tr>
+          <tr>
+            <th>MacroFase</th>
+            <td class="type">text</td>
+            <td class="null">☐</td>
+            <td>
+            </td>
+          </tr>
+          <tr>
+            <th>Orden</th>
+            <td class="type">bigint</td>
+            <td class="null">☐</td>
             <td>
             </td>
           </tr>
@@ -265,13 +307,13 @@
             <th>ActividadId</th>
             <td class="type">bigint</td>
             <td class="null">☐</td>
-            <td><span class="flag" title="FK_RegistrosDefectos_1_0">⇨ <a href="#Actividades">Actividades</a>.Id</span></td>
+            <td><span class="flag" title="FK_RegistrosDefectos_3_0">⇨ <a href="#Actividades">Actividades</a>.Id</span></td>
           </tr>
           <tr>
             <th>DefectoPadreId</th>
             <td class="type">bigint</td>
             <td class="null">☒</td>
-            <td><span class="flag" title="FK_RegistrosDefectos_0_0">⇨ <a href="#RegistrosDefectos">RegistrosDefectos</a>.Id</span></td>
+            <td><span class="flag" title="FK_RegistrosDefectos_2_0">⇨ <a href="#RegistrosDefectos">RegistrosDefectos</a>.Id</span></td>
           </tr>
           <tr>
             <th>DescripcionError</th>
@@ -281,18 +323,16 @@
             </td>
           </tr>
           <tr>
-            <th>FaseOrigen</th>
-            <td class="type">text</td>
+            <th>FaseOrigenId</th>
+            <td class="type">bigint</td>
             <td class="null">☐</td>
-            <td>
-            </td>
+            <td><span class="flag" title="FK_RegistrosDefectos_1_0">⇨ <a href="#Fases">Fases</a>.Id</span></td>
           </tr>
           <tr>
-            <th>FaseDeteccion</th>
-            <td class="type">text</td>
+            <th>FaseDeteccionId</th>
+            <td class="type">bigint</td>
             <td class="null">☐</td>
-            <td>
-            </td>
+            <td><span class="flag" title="FK_RegistrosDefectos_0_0">⇨ <a href="#Fases">Fases</a>.Id</span></td>
           </tr>
           <tr>
             <th>TiempoCorreccionMinutos</th>
@@ -332,14 +372,13 @@
             <th>ActividadId</th>
             <td class="type">bigint</td>
             <td class="null">☐</td>
-            <td><span class="flag" title="FK_RegistrosEsfuerzo_0_0">⇨ <a href="#Actividades">Actividades</a>.Id</span></td>
+            <td><span class="flag" title="FK_RegistrosEsfuerzo_1_0">⇨ <a href="#Actividades">Actividades</a>.Id</span></td>
           </tr>
           <tr>
-            <th>Fase</th>
-            <td class="type">text</td>
+            <th>FaseId</th>
+            <td class="type">bigint</td>
             <td class="null">☐</td>
-            <td>
-            </td>
+            <td><span class="flag" title="FK_RegistrosEsfuerzo_0_0">⇨ <a href="#Fases">Fases</a>.Id</span></td>
           </tr>
           <tr>
             <th>FechaInicio</th>
@@ -366,6 +405,6 @@
     </div>
     <div class="footer">
                     Generated by <a href="http://SqlDbDoc.codeplex.com/">DB&gt;doc</a> and <a href="https://github.com/ErikEJ/SqlCeToolbox">SQLite/SQL Server Compact Toolbox</a> on
-                    September 01, 2026, 17:02:09</div>
+                    September 03, 2026, 16:24:26</div>
   </body>
 </html>

@@ -6,7 +6,7 @@ namespace SistemaMonitoreoProyectos.Models
     {
         public int Id { get; set; }
         public int ActividadId { get; set; }
-        public string Fase { get; set; } = string.Empty;
+        public int FaseId { get; set; } 
         public DateTime FechaInicio { get; set; } = DateTime.Now;
         public DateTime? FechaFin { get; set; }
         public int MinutosEfectivos { get; set; }

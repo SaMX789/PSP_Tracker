@@ -1,6 +1,7 @@
 ﻿<UserControl x:Class="SistemaMonitoreoProyectos.Views.UserControls.WidgetCompactView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    
     <Border Background="{StaticResource BrocheFondoTarjeta}"
             BorderBrush="{StaticResource BrocheBordeTarjeta}"
             BorderThickness="1"
