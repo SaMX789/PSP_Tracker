@@ -24,5 +24,13 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
         {
             InitializeComponent();
         }
+
+        private void BotonMinimizarWidget_Click(object sender, RoutedEventArgs e)
+        {
+            if (Window.GetWindow(this) is WidgetWindow widgetWindow)
+            {
+                widgetWindow.CargarVistaMinimizada();
+            }
+        }
     }
 }

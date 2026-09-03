@@ -9,10 +9,12 @@
         Topmost="True" 
         WindowStartupLocation="CenterScreen" 
         ResizeMode="NoResize"
-        MouseDown="Ventana_MouseDown">
+        MouseDown="Ventana_MouseDown"
+        MouseDoubleClick="Ventana_MouseDoubleClick">
     
     <!-- Contenedor redondeado sin bordes de sistema -->
-    <Border Background="{StaticResource BrocheFondoVentana}"
+    <Border x:Name="BordePrincipal"
+            Background="{StaticResource BrocheFondoVentana}"
             BorderBrush="{StaticResource BrocheBordeTarjeta}"
             BorderThickness="1"
             CornerRadius="20"

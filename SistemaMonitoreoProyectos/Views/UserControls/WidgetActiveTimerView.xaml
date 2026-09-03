@@ -18,8 +18,8 @@
                 <TextBlock x:Name="TextoNombreActividadActiva" Text="APP WEB 1" Foreground="{StaticResource BrocheTextoPrincipal}" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"/>
             </StackPanel>
 
-            <Button x:Name="BotonMinimizarWidget" HorizontalAlignment="Right" Width="30" Height="30" Style="{StaticResource EstiloBotonSecundario}" Padding="0">
-                <TextBlock Text="‹›" FontSize="14" FontWeight="Bold"/>
+            <Button x:Name="BotonMinimizarWidget" HorizontalAlignment="Right" Width="30" Height="20" Style="{StaticResource EstiloBotonSecundario}" Padding="0" Click="BotonMinimizarWidget_Click">
+                <TextBlock Text="-" FontSize="14" FontWeight="Bold"/>
             </Button>
         </Grid>
 
