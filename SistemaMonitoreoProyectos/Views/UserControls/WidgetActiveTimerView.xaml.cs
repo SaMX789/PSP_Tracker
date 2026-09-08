@@ -10,13 +10,17 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
     public partial class WidgetActiveTimerView : UserControl
     {
         private readonly IEstadoSesionRepository _sesionRepo;
+
         private readonly IRegistroEsfuerzoRepository _registroRepo;
+        
         private readonly IFaseRepository _faseRepo;
 
         private readonly DispatcherTimer _timerRelojUI = new DispatcherTimer();
 
         private int _segundosHistoricosOtros = 0; 
+        
         private DateTime? _fechaInicioTramo;
+        
         private bool _isCargandoFases = false;
         public WidgetActiveTimerView()
         {
@@ -47,7 +51,6 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
                     TextoNombreActividadActiva.Text = actividad.Proyecto;
                 }
 
-                // 1. Obtener la fase de la sesión o la última registrada en la BD
                 int faseActualId = sesion.FaseActualId ?? _registroRepo.ObtenerUltimaFasePorActividad(sesion.ActividadId.Value);
 
                 if (!sesion.FaseActualId.HasValue)
@@ -56,36 +59,32 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
                     _sesionRepo.GuardarOSustituirSesion(sesion);
                 }
 
-                // 2. Cargar desplegable con la fase correcta seleccionada
                 CargarDesplegableFases(faseActualId);
-
-                // 3. Cargar segundos históricos reales
                 _segundosHistoricosOtros = _registroRepo.ObtenerMinutosTotalesPorActividad(sesion.ActividadId.Value);
             }
+
+            // Evaluación estricta de botones según el estado activo del reloj
             if (sesion.EstadoCronometro == 1 && sesion.FechaInicioSesion.HasValue)
             {
                 _fechaInicioTramo = sesion.FechaInicioSesion.Value;
                 BotonIniciarReloj.Content = "⏹ TERMINAR FASE";
                 BotonPausarReloj.Content = "❚❚ PAUSAR";
+
                 if (!_timerRelojUI.IsEnabled) _timerRelojUI.Start();
             }
             else
             {
                 _timerRelojUI.Stop();
-                int totalSegundos = _segundosHistoricosOtros + sesion.MinutosAcumulados;
-                if (totalSegundos > 0)
-                {
-                    BotonIniciarReloj.Content = "⏹ TERMINAR FASE";
-                    BotonPausarReloj.Content = "► REANUDAR";
-                }
-                else
-                {
-                    BotonIniciarReloj.Content = "► INICIAR";
-                    BotonPausarReloj.Content = "❚❚ PAUSAR";
-                }
+                _fechaInicioTramo = null;
+
+                // Estado inicial / Pausado al entrar o cambiar de fase
+                BotonIniciarReloj.Content = "► INICIAR";
+                BotonPausarReloj.Content = "❚❚ PAUSAR";
             }
+
             ActualizarRelojPantalla();
         }
+        
         private List<FaseItemView> _listaFasesUI = new List<FaseItemView>();
 
         private void CargarDesplegableFases(int faseActualId)
@@ -119,18 +118,39 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
         private void DesplegableFase_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_isCargandoFases || DesplegableFase.SelectedValue == null) return;
+
             int nuevaFaseId = (int)DesplegableFase.SelectedValue;
             var sesion = _sesionRepo.ObtenerSesion();
+
             if (sesion.FaseActualId == nuevaFaseId) return;
 
-            // 1. Guardar SEGUNDOS exactos trabajados en la fase anterior
-            GuardarYLiquidarFaseActual(pausarCronometro: false);
+            // 1. Si el reloj estaba corriendo, liquidamos el tiempo consumido hasta el segundo exacto
+            if (_fechaInicioTramo.HasValue || sesion.MinutosAcumulados > 0)
+            {
+                GuardarYLiquidarFaseActual(pausarCronometro: true);
+            }
 
-            // 2. Asignar la nueva fase
+            // 2. Detener el reloj para la nueva fase
+            _timerRelojUI.Stop();
+            _fechaInicioTramo = null;
+
+            // 3. Registrar la nueva fase en EstadoSesion en estado detenido (0)
             sesion.FaseActualId = nuevaFaseId;
+            sesion.EstadoCronometro = 0;
+            sesion.FechaInicioSesion = null;
+            sesion.MinutosAcumulados = 0;
             _sesionRepo.GuardarOSustituirSesion(sesion);
 
-            // 3. Continuar la visualización del tiempo total sin reseteos visuales
+            // 4. Resetear los botones visuales a estado listo
+            BotonIniciarReloj.Content = "► INICIAR";
+            BotonPausarReloj.Content = "❚❚ PAUSAR";
+
+            // 5. Refrescar tiempo histórico y reloj visual en pantalla
+            if (sesion.ActividadId.HasValue)
+            {
+                _segundosHistoricosOtros = _registroRepo.ObtenerMinutosTotalesPorActividad(sesion.ActividadId.Value);
+            }
+
             ActualizarRelojPantalla();
         }
 
@@ -141,9 +161,11 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
 
             if (textoBoton.Contains("INICIAR"))
             {
+                // 1. Arrancar nuevo tramo limpio
                 _fechaInicioTramo = DateTime.Now;
                 sesion.EstadoCronometro = 1;
                 sesion.FechaInicioSesion = _fechaInicioTramo;
+                sesion.MinutosAcumulados = 0; // Reseteo garantizado para no congelar el reloj
                 sesion.UltimaActualizacion = DateTime.Now;
 
                 _sesionRepo.GuardarOSustituirSesion(sesion);
@@ -154,35 +176,36 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
             }
             else
             {
-                // 1. Detener reloj y liquidar la fase actual en RegistrosEsfuerzo
+                // 2. TERMINAR FASE: Detener reloj y liquidar tramo actual
                 _timerRelojUI.Stop();
                 GuardarYLiquidarFaseActual(pausarCronometro: true);
 
-                // 2. Lógica para auto-avanzar a la siguiente fase en la secuencia
+                // 3. Avanzar a la siguiente fase
                 int faseActualId = sesion.FaseActualId ?? 1;
                 int indiceActual = _listaFasesUI.FindIndex(f => f.Id == faseActualId);
-
                 int siguienteFaseId = faseActualId;
 
-                // Si existe una fase posterior en el catálogo, avanzamos a ella
                 if (indiceActual >= 0 && indiceActual < _listaFasesUI.Count - 1)
                 {
                     siguienteFaseId = _listaFasesUI[indiceActual + 1].Id;
                 }
 
-                // 3. Actualizar la nueva fase activa en la sesión
                 sesion.FaseActualId = siguienteFaseId;
+                sesion.MinutosAcumulados = 0;
                 _sesionRepo.GuardarOSustituirSesion(sesion);
 
-                // 4. Recargar el desplegable (ahora la fase terminada aparecerá en VERDE)
+                // 4. Actualizar desplegable e interfaz
                 CargarDesplegableFases(siguienteFaseId);
 
                 BotonIniciarReloj.Content = "► INICIAR";
                 BotonPausarReloj.Content = "❚❚ PAUSAR";
             }
+
+            ActualizarRelojPantalla();
         }
 
         private DateTime? _inicioInterrupcion;
+        
         private readonly IInterrupcionRepository _interrupcionRepo = new InterrupcionRepository();
         private void BotonPausarReloj_Click(object sender, RoutedEventArgs e)
         {
@@ -249,11 +272,12 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
 
             ActualizarRelojPantalla();
         }
+        
         private long _ultimoRegistroEsfuerzoId = 0;
         private long GuardarYLiquidarFaseActual(bool pausarCronometro)
         {
             var sesion = _sesionRepo.ObtenerSesion();
-            long idGenerado = 0; 
+            long idGenerado = 0;
 
             int segundosTramo = 0;
             if (_fechaInicioTramo.HasValue)
@@ -261,11 +285,11 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
                 segundosTramo = (int)(DateTime.Now - _fechaInicioTramo.Value).TotalSeconds;
             }
 
-            int segundosEfectivosTramo = sesion.MinutosAcumulados > segundosTramo ? sesion.MinutosAcumulados : segundosTramo;
+            int segundosEfectivosTramo = Math.Max(segundosTramo, sesion.MinutosAcumulados);
 
+            // Solo insertar en BD si se trabajó al menos 1 segundo en este tramo
             if (sesion.ActividadId.HasValue && segundosEfectivosTramo > 0)
             {
-                // 'Agregar' devuelve 'long', por lo que idGenerado debe ser 'long' (o usar casting explícito)
                 idGenerado = _registroRepo.Agregar(new RegistroEsfuerzo
                 {
                     ActividadId = sesion.ActividadId.Value,
@@ -278,6 +302,7 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
                 _ultimoRegistroEsfuerzoId = idGenerado;
             }
 
+            // Reiniciar acumulador vivo
             sesion.MinutosAcumulados = 0;
 
             if (pausarCronometro)
@@ -305,7 +330,6 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
 
         private void ActualizarRelojPantalla()
         {
-            var sesion = _sesionRepo.ObtenerSesion();
             int segundosTramo = 0;
 
             if (_fechaInicioTramo.HasValue)
@@ -313,7 +337,8 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
                 segundosTramo = (int)(DateTime.Now - _fechaInicioTramo.Value).TotalSeconds;
             }
 
-            int segundosTotales = _segundosHistoricosOtros + (sesion.MinutosAcumulados > segundosTramo ? sesion.MinutosAcumulados : segundosTramo);
+            // El tiempo en vivo es estrictamente: Histórico previo de la actividad + Segundos del tramo actual
+            int segundosTotales = _segundosHistoricosOtros + segundosTramo;
 
             TimeSpan tiempo = TimeSpan.FromSeconds(segundosTotales);
             if (TextoRelojCronometro != null)
