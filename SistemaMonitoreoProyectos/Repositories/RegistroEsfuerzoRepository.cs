@@ -37,5 +37,37 @@ namespace SistemaMonitoreoProyectos.Repositories
             object resultado = comando.ExecuteScalar() ?? 0;
             return Convert.ToInt32(resultado);
         }
+        public int ObtenerUltimaFasePorActividad(int actividadId)
+        {
+            using var conexion = ConexionDB.ObtenerConexion();
+            var sql = "SELECT FaseId FROM RegistrosEsfuerzo WHERE ActividadId = @actividadId ORDER BY Id DESC LIMIT 1;";
+
+            using var comando = new SqliteCommand(sql, conexion);
+            comando.Parameters.AddWithValue("@actividadId", actividadId);
+
+            object? resultado = comando.ExecuteScalar();
+            if (resultado != null && resultado != DBNull.Value)
+            {
+                return Convert.ToInt32(resultado);
+            }
+
+            return 1; // Planning por defecto si no tiene registros previos
+        }
+        public List<int> ObtenerFasesCompletadasPorActividad(int actividadId)
+        {
+            var fasesCompletadas = new List<int>();
+            using var conexion = ConexionDB.ObtenerConexion();
+            var sql = "SELECT DISTINCT FaseId FROM RegistrosEsfuerzo WHERE ActividadId = @actividadId;";
+
+            using var comando = new SqliteCommand(sql, conexion);
+            comando.Parameters.AddWithValue("@actividadId", actividadId);
+
+            using var reader = comando.ExecuteReader();
+            while (reader.Read())
+            {
+                fasesCompletadas.Add(reader.GetInt32(0));
+            }
+            return fasesCompletadas;
+        }
     }
 }
