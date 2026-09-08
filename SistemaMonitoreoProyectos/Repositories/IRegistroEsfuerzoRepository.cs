@@ -6,5 +6,7 @@ namespace SistemaMonitoreoProyectos.Repositories
     {
         long Agregar(RegistroEsfuerzo registro);
         int ObtenerMinutosTotalesPorActividad(int actividadId);
+        int ObtenerUltimaFasePorActividad(int actividadId);
+        List<int> ObtenerFasesCompletadasPorActividad(int actividadId);
     }
 }

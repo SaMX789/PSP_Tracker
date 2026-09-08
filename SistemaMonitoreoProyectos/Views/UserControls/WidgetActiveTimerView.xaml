@@ -42,13 +42,56 @@
         <StackPanel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center">
             <TextBlock x:Name="TextoRelojCronometro" Text="00:00:00" FontSize="56" FontWeight="Bold" Foreground="{StaticResource BrocheTextoPrincipal}" HorizontalAlignment="Center"/>
 
-            <!-- Selector de Fase actual dinámico -->
-          <ComboBox x:Name="DesplegableFase" 
-          Style="{StaticResource EstiloDesplegable}" 
-          Width="180" 
-          HorizontalAlignment="Center" 
-          Margin="0,20,0,0"
-          SelectionChanged="DesplegableFase_SelectionChanged"/>
+           <ComboBox x:Name="DesplegableFase"
+          Width="210"
+          Height="36"
+          HorizontalAlignment="Center"
+          FontSize="14"
+          FontWeight="Bold"
+          Foreground="#1E2026"
+          Background="#FFFFFF"
+          BorderBrush="#D1D5DB"
+          BorderThickness="1"
+          HorizontalContentAlignment="Center"
+          VerticalContentAlignment="Center"
+          Margin="0,15,0,15">
+    
+    <!-- Plantilla visual para mostrar el estado Verde/Rojo -->
+    <ComboBox.ItemTemplate>
+        <DataTemplate>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                <TextBlock Text="{Binding IconoEstado}" 
+                           Foreground="{Binding ColorEstado}" 
+                           FontWeight="Bold" 
+                           Margin="0,0,8,0"
+                           FontSize="13"/>
+                <TextBlock Text="{Binding Nombre}" 
+                           Foreground="#1E2026"/>
+            </StackPanel>
+        </DataTemplate>
+    </ComboBox.ItemTemplate>
+
+    <ComboBox.Resources>
+        <Style TargetType="ComboBoxItem">
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="Foreground" Value="#1E2026"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#E5E7EB"/>
+                    <Setter Property="Foreground" Value="#1E2026"/>
+                </Trigger>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#2563EB"/>
+                    <Setter Property="Foreground" Value="White"/>
+                    <Setter Property="FontWeight" Value="Bold"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </ComboBox.Resources>
+</ComboBox>
         </StackPanel>
 
         <!-- Botones de Control del Tiempo y Defectos -->

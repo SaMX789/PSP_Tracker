@@ -41,12 +41,25 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
             {
                 var actividadRepo = new ActividadRepository();
                 var actividad = actividadRepo.ObtenerPorId(sesion.ActividadId.Value);
+
                 if (actividad != null && TextoNombreActividadActiva != null)
                 {
                     TextoNombreActividadActiva.Text = actividad.Proyecto;
                 }
-                int faseActualId = sesion.FaseActualId ?? 1;
+
+                // 1. Obtener la fase de la sesión o la última registrada en la BD
+                int faseActualId = sesion.FaseActualId ?? _registroRepo.ObtenerUltimaFasePorActividad(sesion.ActividadId.Value);
+
+                if (!sesion.FaseActualId.HasValue)
+                {
+                    sesion.FaseActualId = faseActualId;
+                    _sesionRepo.GuardarOSustituirSesion(sesion);
+                }
+
+                // 2. Cargar desplegable con la fase correcta seleccionada
                 CargarDesplegableFases(faseActualId);
+
+                // 3. Cargar segundos históricos reales
                 _segundosHistoricosOtros = _registroRepo.ObtenerMinutosTotalesPorActividad(sesion.ActividadId.Value);
             }
             if (sesion.EstadoCronometro == 1 && sesion.FechaInicioSesion.HasValue)
@@ -73,14 +86,34 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
             }
             ActualizarRelojPantalla();
         }
+        private List<FaseItemView> _listaFasesUI = new List<FaseItemView>();
+
         private void CargarDesplegableFases(int faseActualId)
         {
             _isCargandoFases = true;
-            var fases = _faseRepo.ObtenerTodas();
-            DesplegableFase.ItemsSource = fases;
-            DesplegableFase.DisplayMemberPath = "Nombre";
+            var sesion = _sesionRepo.ObtenerSesion();
+
+            var todasLasFases = _faseRepo.ObtenerTodas();
+            List<int> fasesCompletadas = new List<int>();
+
+            if (sesion.ActividadId.HasValue)
+            {
+                fasesCompletadas = _registroRepo.ObtenerFasesCompletadasPorActividad(sesion.ActividadId.Value);
+            }
+
+            // Mapear catálogo a objetos de vista con indicador de color
+            _listaFasesUI = todasLasFases.Select(f => new FaseItemView
+            {
+                Id = f.Id,
+                Nombre = f.Nombre,
+                Orden = f.Orden,
+                EsCompletada = fasesCompletadas.Contains(f.Id)
+            }).ToList();
+
+            DesplegableFase.ItemsSource = _listaFasesUI;
             DesplegableFase.SelectedValuePath = "Id";
             DesplegableFase.SelectedValue = faseActualId;
+
             _isCargandoFases = false;
         }
         private void DesplegableFase_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -121,13 +154,34 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
             }
             else
             {
+                // 1. Detener reloj y liquidar la fase actual en RegistrosEsfuerzo
                 _timerRelojUI.Stop();
                 GuardarYLiquidarFaseActual(pausarCronometro: true);
+
+                // 2. Lógica para auto-avanzar a la siguiente fase en la secuencia
+                int faseActualId = sesion.FaseActualId ?? 1;
+                int indiceActual = _listaFasesUI.FindIndex(f => f.Id == faseActualId);
+
+                int siguienteFaseId = faseActualId;
+
+                // Si existe una fase posterior en el catálogo, avanzamos a ella
+                if (indiceActual >= 0 && indiceActual < _listaFasesUI.Count - 1)
+                {
+                    siguienteFaseId = _listaFasesUI[indiceActual + 1].Id;
+                }
+
+                // 3. Actualizar la nueva fase activa en la sesión
+                sesion.FaseActualId = siguienteFaseId;
+                _sesionRepo.GuardarOSustituirSesion(sesion);
+
+                // 4. Recargar el desplegable (ahora la fase terminada aparecerá en VERDE)
+                CargarDesplegableFases(siguienteFaseId);
 
                 BotonIniciarReloj.Content = "► INICIAR";
                 BotonPausarReloj.Content = "❚❚ PAUSAR";
             }
         }
+
         private DateTime? _inicioInterrupcion;
         private readonly IInterrupcionRepository _interrupcionRepo = new InterrupcionRepository();
         private void BotonPausarReloj_Click(object sender, RoutedEventArgs e)
@@ -285,16 +339,27 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
         }
         private void MenuItemGuardarYSalir_Click(object sender, RoutedEventArgs e)
         {
+            // 1. Detener el temporizador de interfaz
             _timerRelojUI.Stop();
 
-            // 1. Guardar el progreso de la fase actual en RegistrosEsfuerzo
+            // 2. Guardar y consolidar los segundos de la fase actual en RegistrosEsfuerzo
             GuardarYLiquidarFaseActual(pausarCronometro: true);
 
-            // 2. Volver a la pantalla principal de lista de tareas
+            // 3. Cerrar por completo la ventana del Widget
             if (Window.GetWindow(this) is WidgetWindow widgetWindow)
             {
-                widgetWindow.CargarVistaListaTareas(); // O el método para volver al listado
+                widgetWindow.Close();
             }
         }
+    }
+    public class FaseItemView
+    {
+        public int Id { get; set; }
+        public string Nombre { get; set; } = string.Empty;
+        public int Orden { get; set; }
+        public bool EsCompletada { get; set; }
+
+        public string IconoEstado => EsCompletada ? "✓" : "○";
+        public string ColorEstado => EsCompletada ? "#10B981" : "#EF4444"; // Verde / Rojo
     }
 }

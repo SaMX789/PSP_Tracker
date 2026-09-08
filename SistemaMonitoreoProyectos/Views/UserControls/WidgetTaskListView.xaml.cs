@@ -77,10 +77,15 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
             tarjeta.MouseLeftButtonDown += (s, e) =>
             {
                 var sesionRepo = new EstadoSesionRepository();
+                var registroRepo = new RegistroEsfuerzoRepository();
+
+                // Consultar en qué fase se quedó esta actividad previamente
+                int ultimaFase = registroRepo.ObtenerUltimaFasePorActividad(actividad.Id);
+
                 sesionRepo.GuardarOSustituirSesion(new EstadoSesion
                 {
                     ActividadId = actividad.Id,
-                    FaseActualId = 1, 
+                    FaseActualId = ultimaFase, 
                     EstadoCronometro = 0,
                     MinutosAcumulados = 0
                 });
