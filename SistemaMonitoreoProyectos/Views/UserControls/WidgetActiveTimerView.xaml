@@ -9,33 +9,46 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Encabezado con Nombre de Actividad y Botón Minimizar -->
-        <Grid Grid.Row="0" Margin="0,0,0,10">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
-                <Border Width="28" Height="28" CornerRadius="14" Background="{StaticResource BrocheFondoTarjeta}" Margin="0,0,8,0">
-                    <TextBlock Text="👤" Foreground="{StaticResource BrocheTextoSecundario}" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="12"/>
-                </Border>
-                <TextBlock x:Name="TextoNombreActividadActiva" Text="APP WEB 1" Foreground="{StaticResource BrocheTextoPrincipal}" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"/>
-            </StackPanel>
+        <!-- Encabezado con Nombre de Actividad, Opciones y Botón Minimizar -->
+<Grid Grid.Row="0" Margin="0,0,0,10">
+    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+        <Border Width="28" Height="28" CornerRadius="14" Background="{StaticResource BrocheFondoTarjeta}" Margin="0,0,8,0">
+            <TextBlock Text="👤" Foreground="{StaticResource BrocheTextoSecundario}" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="12"/>
+        </Border>
+        <TextBlock x:Name="TextoNombreActividadActiva" Text="APP WEB 1" Foreground="{StaticResource BrocheTextoPrincipal}" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"/>
+    </StackPanel>
 
-            <Button x:Name="BotonMinimizarWidget" HorizontalAlignment="Right" Width="30" Height="20" Style="{StaticResource EstiloBotonSecundario}" Padding="0" Click="BotonMinimizarWidget_Click">
-                <TextBlock Text="-" FontSize="14" FontWeight="Bold"/>
-            </Button>
-        </Grid>
+    <!-- Botones de Acción en el Encabezado -->
+    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+        <!-- Botón de 3 Puntos para Opciones -->
+        <Button x:Name="BotonOpcionesWidget" Width="26" Height="20" Style="{StaticResource EstiloBotonSecundario}" Padding="0" Margin="0,0,6,0" Click="BotonOpcionesWidget_Click">
+            <TextBlock Text="⋮" FontSize="14" FontWeight="Bold"/>
+            <Button.ContextMenu>
+                <ContextMenu x:Name="MenuOpcionesContext">
+                    <MenuItem Header="💾 Guardar y Salir" Click="MenuItemGuardarYSalir_Click"/>
+                </ContextMenu>
+            </Button.ContextMenu>
+        </Button>
 
+        <!-- Botón Minimizar -->
+        <Button x:Name="BotonMinimizarWidget" Width="30" Height="20" Style="{StaticResource EstiloBotonSecundario}" Padding="0" Click="BotonMinimizarWidget_Click">
+            <TextBlock Text="-" FontSize="14" FontWeight="Bold"/>
+        </Button>
+    </StackPanel>
+</Grid>
         <Border Grid.Row="1" Width="40" Height="4" Background="{StaticResource BrocheBordeTarjeta}" CornerRadius="2" Margin="0,0,0,20"/>
 
         <!-- Display Digital del Cronómetro -->
         <StackPanel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center">
-            <TextBlock x:Name="TextoRelojCronometro" Text="00:00" FontSize="56" FontWeight="Bold" Foreground="{StaticResource BrocheTextoPrincipal}" HorizontalAlignment="Center"/>
+            <TextBlock x:Name="TextoRelojCronometro" Text="00:00:00" FontSize="56" FontWeight="Bold" Foreground="{StaticResource BrocheTextoPrincipal}" HorizontalAlignment="Center"/>
 
-            <!-- Selector de Fase actual -->
-            <ComboBox x:Name="DesplegableFase" Style="{StaticResource EstiloDesplegable}" Width="180" HorizontalAlignment="Center" Margin="0,20,0,0" SelectedIndex="0">
-                <ComboBoxItem Content="Planeación"/>
-                <ComboBoxItem Content="Diseño"/>
-                <ComboBoxItem Content="Construcción"/>
-                <ComboBoxItem Content="Pruebas"/>
-            </ComboBox>
+            <!-- Selector de Fase actual dinámico -->
+          <ComboBox x:Name="DesplegableFase" 
+          Style="{StaticResource EstiloDesplegable}" 
+          Width="180" 
+          HorizontalAlignment="Center" 
+          Margin="0,20,0,0"
+          SelectionChanged="DesplegableFase_SelectionChanged"/>
         </StackPanel>
 
         <!-- Botones de Control del Tiempo y Defectos -->
@@ -47,8 +60,8 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <Button x:Name="BotonIniciarReloj" Grid.Column="0" Content="► INICIAR" Style="{StaticResource EstiloBotonPrimario}" Height="42"/>
-                <Button x:Name="BotonPausarReloj" Grid.Column="2" Content="❚❚ PAUSAR" Style="{StaticResource EstiloBotonSecundario}" Height="42"/>
+                <Button x:Name="BotonIniciarReloj" Grid.Column="0" Content="► INICIAR" Style="{StaticResource EstiloBotonPrimario}" Height="42" Click="BotonIniciarReloj_Click"/>
+                <Button x:Name="BotonPausarReloj" Grid.Column="2" Content="❚❚ PAUSAR" Style="{StaticResource EstiloBotonSecundario}" Height="42" Click="BotonPausarReloj_Click"/>
             </Grid>
 
             <!-- Botón Destacado + Defecto -->

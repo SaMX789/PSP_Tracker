@@ -1,12 +1,13 @@
-﻿using System;
+﻿using SistemaMonitoreoProyectos.Models;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SistemaMonitoreoProyectos.Repositories
 {
-    internal interface IActividadRepository
+    public interface IActividadRepository
     {
+        int Agregar(Actividad actividad);
+        List<Actividad> ObtenerTodas();
+        Actividad? ObtenerPorId(int id);
+        void ActualizarEstado(int actividadId, int nuevoEstado);
     }
 }

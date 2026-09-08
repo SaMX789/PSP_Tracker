@@ -1,0 +1,10 @@
+﻿using SistemaMonitoreoProyectos.Models;
+
+namespace SistemaMonitoreoProyectos.Repositories
+{
+    public interface IRegistroEsfuerzoRepository
+    {
+        long Agregar(RegistroEsfuerzo registro);
+        int ObtenerMinutosTotalesPorActividad(int actividadId);
+    }
+}
