@@ -69,5 +69,17 @@ namespace SistemaMonitoreoProyectos.Repositories
             }
             return fasesCompletadas;
         }
+        public int ObtenerSegundosPorFase(int actividadId, int faseId)
+        {
+            using var conexion = ConexionDB.ObtenerConexion();
+            var sql = "SELECT COALESCE(SUM(MinutosEfectivos), 0) FROM RegistrosEsfuerzo WHERE ActividadId = @actividadId AND FaseId = @faseId;";
+
+            using var comando = new SqliteCommand(sql, conexion);
+            comando.Parameters.AddWithValue("@actividadId", actividadId);
+            comando.Parameters.AddWithValue("@faseId", faseId);
+
+            object resultado = comando.ExecuteScalar() ?? 0;
+            return Convert.ToInt32(resultado);
+        }
     }
 }

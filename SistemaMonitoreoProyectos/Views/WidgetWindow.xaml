@@ -2,27 +2,23 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="PSP Tracker Widget" 
-        Height="540" Width="340"
+        Height="540" 
+        Width="340"
         WindowStyle="None" 
         AllowsTransparency="True" 
         Background="Transparent"
-        Topmost="True" 
-        WindowStartupLocation="CenterScreen" 
+        Topmost="True"
+        ShowInTaskbar="True"
         ResizeMode="NoResize"
-        MouseDown="Ventana_MouseDown"
-        MouseDoubleClick="Ventana_MouseDoubleClick">
-    
-    <!-- Contenedor redondeado sin bordes de sistema -->
-    <Border x:Name="BordePrincipal"
-            Background="{StaticResource BrocheFondoVentana}"
-            BorderBrush="{StaticResource BrocheBordeTarjeta}"
-            BorderThickness="1"
-            CornerRadius="20"
-            Padding="20" >
-        
-        <Grid>
-            <!-- Área dinámica donde se intercambiarán los UserControls -->
-            <ContentControl x:Name="ControlContenidoVista"/>
-        </Grid>
+        WindowStartupLocation="Manual"
+        MouseDown="Ventana_MouseDown">
+
+    <Border x:Name="BordePrincipal" 
+            Background="{StaticResource BrocheFondoVentana}" 
+            BorderBrush="{StaticResource BrocheBordeTarjeta}" 
+            BorderThickness="1" 
+            CornerRadius="20" 
+            Padding="20">
+        <ContentControl x:Name="ControlContenidoVista"/>
     </Border>
 </Window>

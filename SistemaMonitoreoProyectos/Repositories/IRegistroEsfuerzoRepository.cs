@@ -8,5 +8,6 @@ namespace SistemaMonitoreoProyectos.Repositories
         int ObtenerMinutosTotalesPorActividad(int actividadId);
         int ObtenerUltimaFasePorActividad(int actividadId);
         List<int> ObtenerFasesCompletadasPorActividad(int actividadId);
+        int ObtenerSegundosPorFase(int actividadId, int faseId);
     }
 }
