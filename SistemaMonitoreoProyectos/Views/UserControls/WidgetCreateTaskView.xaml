@@ -43,7 +43,7 @@
             <Button x:Name="BotonCargarExistente" Background="Transparent" BorderThickness="0" Cursor="Hand">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                     <TextBlock Text="↺ " Foreground="{StaticResource BrocheTextoSecundario}" FontSize="13"/>
-                    <TextBlock Text="Continuar con una actividad ya creada" Foreground="{StaticResource BrocheTextoSecundario}" FontSize="13" TextDecorations="Underline"/>
+                    <TextBlock Text="Continuar con una actividad ya creada" Foreground="{StaticResource BrocheTextoSecundario}" FontSize="13" TextDecorations="Underline" MouseDown="TextBlock_MouseDown"/>
                 </StackPanel>
             </Button>
         </StackPanel>

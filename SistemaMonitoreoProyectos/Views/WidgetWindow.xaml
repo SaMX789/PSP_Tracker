@@ -18,7 +18,7 @@
             BorderBrush="{StaticResource BrocheBordeTarjeta}"
             BorderThickness="1"
             CornerRadius="20"
-            Padding="20">
+            Padding="20" >
         
         <Grid>
             <!-- Área dinámica donde se intercambiarán los UserControls -->

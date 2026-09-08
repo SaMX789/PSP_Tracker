@@ -8,7 +8,7 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Encabezado con Botón Usuario -->
+        <!-- Encabezado -->
         <Grid Grid.Row="0" Margin="0,0,0,12">
             <StackPanel HorizontalAlignment="Center">
                 <Border Width="30" Height="4" Background="{StaticResource BrocheBordeTarjeta}" CornerRadius="2" Margin="0,0,0,8"/>
@@ -20,57 +20,31 @@
             </Border>
         </Grid>
 
-        <!-- Buscador de Actividades -->
-        <TextBox Grid.Row="1" x:Name="TextoBuscadorActividad" Style="{StaticResource EstiloCampoTexto}" Text="🔍 Buscar actividades..." Foreground="{StaticResource BrocheTextoSecundario}" Margin="0,0,0,15"/>
+        <!-- Buscador de Actividades (Conectado con evento TextChanged) -->
+        <TextBox Grid.Row="1" 
+                 x:Name="TextoBuscadorActividad" 
+                 Style="{StaticResource EstiloCampoTexto}" 
+                 Tag="🔍 Buscar actividades..." 
+                 Foreground="{StaticResource BrocheTextoPrincipal}" 
+                 Margin="0,0,0,15"
+                 TextChanged="TextoBuscadorActividad_TextChanged"/>
 
-        <!-- Lista de Tarjetas de Tareas -->
+        <!-- Contenedor Dinámico de Tareas -->
         <Grid Grid.Row="2">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <StackPanel x:Name="ContenedorListaTareas">
-
-                    <!-- Ejemplo Tarjeta 1 (En Curso) -->
-                    <Border Style="{StaticResource EstiloTarjetaBase}" Margin="0,0,0,10" Padding="14">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-
-                            <TextBlock Grid.Row="0" Text="Módulo de Autenticación" Foreground="{StaticResource BrocheTextoPrincipal}" FontWeight="Bold" FontSize="15" Margin="0,0,80,4"/>
-                            <Border Grid.Row="0" HorizontalAlignment="Right" Background="{StaticResource BrocheEstadoEnCursoFondo}" CornerRadius="10" Padding="8,3">
-                                <TextBlock Text="EN CURSO" Foreground="{StaticResource BrocheEstadoEnCursoTexto}" FontSize="10" FontWeight="Bold"/>
-                            </Border>
-
-                            <TextBlock Grid.Row="1" Text="Fase: Code" Foreground="{StaticResource BrocheTextoSecundario}" FontSize="12" Margin="0,0,0,8"/>
-                            <TextBlock Grid.Row="2" Text="⏱ 2h 30m / 5h" Foreground="{StaticResource BrocheTextoSecundario}" FontSize="12"/>
-                        </Grid>
-                    </Border>
-
-                    <!-- Ejemplo Tarjeta 2 (Terminada) -->
-                    <Border Style="{StaticResource EstiloTarjetaBase}" Margin="0,0,0,10" Padding="14" Opacity="0.7">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-
-                            <TextBlock Grid.Row="0" Text="Diseño de Base de Datos" Foreground="{StaticResource BrocheTextoPrincipal}" FontWeight="Bold" FontSize="15" TextDecorations="Strikethrough" Margin="0,0,90,4"/>
-                            <Border Grid.Row="0" HorizontalAlignment="Right" Background="{StaticResource BrocheEstadoTerminadoFondo}" CornerRadius="10" Padding="8,3">
-                                <TextBlock Text="✓ TERMINADA" Foreground="{StaticResource BrocheEstadoTerminadoTexto}" FontSize="10" FontWeight="Bold"/>
-                            </Border>
-
-                            <TextBlock Grid.Row="1" Text="Fase: Planning" Foreground="{StaticResource BrocheTextoSecundario}" FontSize="12" Margin="0,0,0,8"/>
-                            <TextBlock Grid.Row="2" Text="✓ 4h / 4h" Foreground="{StaticResource BrocheTextoSecundario}" FontSize="12"/>
-                        </Grid>
-                    </Border>
-
-                </StackPanel>
+                <StackPanel x:Name="ContenedorListaTareas" />
             </ScrollViewer>
 
-            <!-- Botón flotante (+) para crear nueva tarea -->
-            <Button x:Name="BotonFlotanteNuevaTarea" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="48" Height="48" Style="{StaticResource EstiloBotonPrimario}" Padding="0" Margin="0,0,10,10" Click="BotonFlotanteNuevaTarea_Click">
+            <!-- Botón flotante (+) -->
+            <Button x:Name="BotonFlotanteNuevaTarea" 
+                    HorizontalAlignment="Right" 
+                    VerticalAlignment="Bottom" 
+                    Width="48" 
+                    Height="48" 
+                    Style="{StaticResource EstiloBotonPrimario}" 
+                    Padding="0" 
+                    Margin="0,0,10,10" 
+                    Click="BotonFlotanteNuevaTarea_Click">
                 <Button.Template>
                     <ControlTemplate TargetType="Button">
                         <Border CornerRadius="24" Background="{TemplateBinding Background}">

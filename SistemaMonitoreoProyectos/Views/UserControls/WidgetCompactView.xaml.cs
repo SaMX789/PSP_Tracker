@@ -15,9 +15,7 @@ using System.Windows.Shapes;
 
 namespace SistemaMonitoreoProyectos.Views.UserControls
 {
-    /// <summary>
-    /// Lógica de interacción para WidgetCompactView.xaml
-    /// </summary>
+
     public partial class WidgetCompactView : UserControl
     {
         public WidgetCompactView()
