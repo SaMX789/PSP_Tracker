@@ -82,5 +82,21 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
                 widgetWindow.CargarVistaListaTareas();
             }
         }
+
+        private void BotonOpcionesWidget_Click(object sender, RoutedEventArgs e)
+        {
+            if (BotonOpcionesWidget.ContextMenu != null)
+            {
+                BotonOpcionesWidget.ContextMenu.IsOpen = true;
+            }
+        }
+
+        private void MenuItemSalirWidget_Click(object sender, RoutedEventArgs e)
+        {
+            if (Window.GetWindow(this) is WidgetWindow widgetWindow)
+            {
+                widgetWindow.Close();
+            }
+        }
     }
 }

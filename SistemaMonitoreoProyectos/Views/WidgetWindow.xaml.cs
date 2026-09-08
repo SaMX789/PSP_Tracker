@@ -1,12 +1,16 @@
-﻿using SistemaMonitoreoProyectos.Repositories;
-using SistemaMonitoreoProyectos.Views.UserControls;
+﻿using System;
 using System.Windows;
 using System.Windows.Input;
+using SistemaMonitoreoProyectos.Repositories;
+using SistemaMonitoreoProyectos.Views.UserControls;
 
 namespace SistemaMonitoreoProyectos.Views
 {
     public partial class WidgetWindow : Window
     {
+        private bool _esModoCompacto = false;
+        private object? _vistaAnterior;
+
         public WidgetWindow()
         {
             InitializeComponent();
@@ -14,40 +18,53 @@ namespace SistemaMonitoreoProyectos.Views
             CargarVistaCrearTarea();
         }
 
-        // Método público para cambiar la vista a el view para crear actividades
+        // Método público para cambiar a la vista de creación de actividades
         public void CargarVistaCrearTarea()
         {
+            AjustarDimensionesModoNormal();
             ControlContenidoVista.Content = new WidgetCreateTaskView();
         }
-        // Nuevo método para cargar la vista de lista de actividades antes creadas
+
+        // Método para cargar la vista de lista de actividades
         public void CargarVistaListaTareas()
         {
+            AjustarDimensionesModoNormal();
             ControlContenidoVista.Content = new WidgetTaskListView();
         }
-        // Nuevo método para cargar en el widget vacio la nueva actividad creada
+
+        // Método para cargar el cronómetro de la actividad
         public void CargarTimeActividadCreada()
         {
+            AjustarDimensionesModoNormal();
             ControlContenidoVista.Content = new WidgetActiveTimerView();
         }
 
+        // Manejador unificado de clic y doble clic para evitar conflictos con DragMove()
         private void Ventana_MouseDown(object sender, MouseButtonEventArgs e)
         {
             if (e.ChangedButton == MouseButton.Left)
             {
+                // 1. Detectar DOBLE CLIC estando en modo compacto
+                if (e.ClickCount == 2 && _esModoCompacto)
+                {
+                    RestaurarModoNormal();
+                    return;
+                }
+
+                // 2. Si es un solo clic/arrastre, mover la ventana
                 this.DragMove();
             }
         }
+
         #region MODO COMPACTO
 
-        private bool _esModoCompacto = false;
-        private object? _vistaAnterior;
         public void CargarVistaMinimizada()
         {
-            // Guardar la vista del cronometro
+            // Guardar la vista activa previa
             _vistaAnterior = ControlContenidoVista.Content;
             _esModoCompacto = true;
 
-            // ocultar el marco de WidgetWindow 
+            // Ajustar el marco a la píldora compacta
             this.Width = 240;
             this.Height = 46;
 
@@ -58,11 +75,24 @@ namespace SistemaMonitoreoProyectos.Views
             ControlContenidoVista.Content = new WidgetCompactView();
         }
 
+        public void RestaurarModoNormal()
+        {
+            if (!_esModoCompacto) return;
+
+            AjustarDimensionesModoNormal();
+
+            // Regresa exactamente a la vista del cronómetro que estaba abierta
+            ControlContenidoVista.Content = _vistaAnterior ?? new WidgetActiveTimerView();
+        }
+
         private void AjustarDimensionesModoNormal()
         {
+            _esModoCompacto = false;
+
             // Tamaño estándar para los formularios y cronómetro
             this.Width = 340;
             this.Height = 540;
+
             // Restaurar el fondo y borde estilo Dark Mode original de la ventana
             BordePrincipal.Background = (System.Windows.Media.Brush)FindResource("BrocheFondoVentana");
             BordePrincipal.BorderBrush = (System.Windows.Media.Brush)FindResource("BrocheBordeTarjeta");
@@ -70,22 +100,6 @@ namespace SistemaMonitoreoProyectos.Views
             BordePrincipal.CornerRadius = new CornerRadius(20);
         }
 
-        // Evento de doble clic en cualquier parte de la ventana
-        private void Ventana_MouseDoubleClick(object sender, MouseButtonEventArgs e)
-        {
-            if (e.ChangedButton == MouseButton.Left)
-            {
-                // Solo reacciona si el widget se encuentra minimizado
-                if (_esModoCompacto)
-                {
-                    _esModoCompacto = false;
-                    AjustarDimensionesModoNormal();
-
-                    // Regresa exactamente a la vista del cronómetro que estaba abierta
-                    ControlContenidoVista.Content = _vistaAnterior ?? new WidgetActiveTimerView();
-                }
-            }
-        }
         #endregion
 
         #region RECUPERACIÓN DE TIEMPO POR ACCIDENTE DE CIERRE O CRASH DE LA APP
@@ -101,7 +115,7 @@ namespace SistemaMonitoreoProyectos.Views
                 var sesionRepo = new EstadoSesionRepository();
                 var sesion = sesionRepo.ObtenerSesion();
 
-                // 1. Si la sesión venía activa tras el cierre abrupto, se pausa conservando los minutos guardados
+                // Si la sesión venía activa tras el cierre abrupto, se pausa conservando los minutos guardados
                 if (sesion.EstadoCronometro == 1)
                 {
                     sesion.EstadoCronometro = 0;
@@ -111,7 +125,7 @@ namespace SistemaMonitoreoProyectos.Views
                     sesionRepo.GuardarOSustituirSesion(sesion);
                 }
 
-                // 2. Si existe una tarea seleccionada en EstadoSesion, abre directamente el cronómetro con su progreso
+                // Si existe una tarea seleccionada en EstadoSesion, abre directamente el cronómetro con su progreso
                 if (sesion.ActividadId.HasValue)
                 {
                     CargarTimeActividadCreada();

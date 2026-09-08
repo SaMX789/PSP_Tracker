@@ -1,9 +1,10 @@
-﻿using System;
+﻿using SistemaMonitoreoProyectos.Models;
+using SistemaMonitoreoProyectos.Repositories;
+using System;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using System.Windows.Threading;
-using SistemaMonitoreoProyectos.Models;
-using SistemaMonitoreoProyectos.Repositories;
 
 namespace SistemaMonitoreoProyectos.Views.UserControls
 {
@@ -37,6 +38,38 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
         {
             SincronizarDesdeBD();
         }
+        private void ConfigurarBotonPausar(bool esPausar, bool habilitado)
+        {
+            BotonPausarReloj.IsEnabled = habilitado;
+
+            if (!habilitado)
+            {
+                // Restablece el color base del tema cuando está deshabilitado
+                BotonPausarReloj.ClearValue(Button.BackgroundProperty);
+                BotonPausarReloj.ClearValue(Button.ForegroundProperty);
+                BotonPausarReloj.Content = "❚❚ PAUSAR";
+                BotonPausarReloj.ToolTip = "Debes iniciar la fase antes de poder pausar o registrar tiempo";
+                return;
+            }
+
+            if (esPausar)
+            {
+                // Azulito para PAUSAR
+                BotonPausarReloj.Content = "❚❚ PAUSAR";
+                BotonPausarReloj.Background = (Brush)new BrushConverter().ConvertFrom("#3B82F6")!;
+                BotonPausarReloj.Foreground = Brushes.White;
+                BotonPausarReloj.ToolTip = "Pausar el tiempo de la fase actual";
+            }
+            else
+            {
+                // Verde para REANUDAR
+                BotonPausarReloj.Content = "► REANUDAR";
+                BotonPausarReloj.Background = (Brush)new BrushConverter().ConvertFrom("#10B981")!;
+                BotonPausarReloj.Foreground = Brushes.White;
+                BotonPausarReloj.ToolTip = "Reanudar el tiempo de esta fase";
+            }
+        }
+
         private void SincronizarDesdeBD()
         {
             var sesion = _sesionRepo.ObtenerSesion();
@@ -63,28 +96,45 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
                 _segundosHistoricosOtros = _registroRepo.ObtenerMinutosTotalesPorActividad(sesion.ActividadId.Value);
             }
 
-            // Evaluación estricta de botones según el estado activo del reloj
+            // 1. ESTADO CORRIENDO
             if (sesion.EstadoCronometro == 1 && sesion.FechaInicioSesion.HasValue)
             {
                 _fechaInicioTramo = sesion.FechaInicioSesion.Value;
                 BotonIniciarReloj.Content = "⏹ TERMINAR FASE";
-                BotonPausarReloj.Content = "❚❚ PAUSAR";
+                ConfigurarBotonPausar(esPausar: true, habilitado: true); // Azulito
 
                 if (!_timerRelojUI.IsEnabled) _timerRelojUI.Start();
             }
+            // 2. ESTADO DETENIDO / PAUSADO
             else
             {
                 _timerRelojUI.Stop();
                 _fechaInicioTramo = null;
 
-                // Estado inicial / Pausado al entrar o cambiar de fase
-                BotonIniciarReloj.Content = "► INICIAR";
-                BotonPausarReloj.Content = "❚❚ PAUSAR";
+                bool faseEnCurso = false;
+                if (sesion.ActividadId.HasValue && sesion.FaseActualId.HasValue)
+                {
+                    int segundosEnFaseActual = _registroRepo.ObtenerSegundosPorFase(sesion.ActividadId.Value, sesion.FaseActualId.Value);
+                    faseEnCurso = segundosEnFaseActual > 0;
+                }
+
+                if (faseEnCurso)
+                {
+                    // ESTADO PAUSADO
+                    BotonIniciarReloj.Content = "⏹ TERMINAR FASE";
+                    ConfigurarBotonPausar(esPausar: false, habilitado: true); // Verde (REANUDAR)
+                }
+                else
+                {
+                    // FASE NUEVA / SIN INICIAR
+                    BotonIniciarReloj.Content = "► INICIAR";
+                    ConfigurarBotonPausar(esPausar: true, habilitado: false); // Deshabilitado
+                }
             }
 
             ActualizarRelojPantalla();
         }
-        
+
         private List<FaseItemView> _listaFasesUI = new List<FaseItemView>();
 
         private void CargarDesplegableFases(int faseActualId)
@@ -161,26 +211,23 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
 
             if (textoBoton.Contains("INICIAR"))
             {
-                // 1. Arrancar nuevo tramo limpio
                 _fechaInicioTramo = DateTime.Now;
                 sesion.EstadoCronometro = 1;
                 sesion.FechaInicioSesion = _fechaInicioTramo;
-                sesion.MinutosAcumulados = 0; // Reseteo garantizado para no congelar el reloj
+                sesion.MinutosAcumulados = 0;
                 sesion.UltimaActualizacion = DateTime.Now;
 
                 _sesionRepo.GuardarOSustituirSesion(sesion);
                 _timerRelojUI.Start();
 
                 BotonIniciarReloj.Content = "⏹ TERMINAR FASE";
-                BotonPausarReloj.Content = "❚❚ PAUSAR";
+                ConfigurarBotonPausar(esPausar: true, habilitado: true); // Cambia a Azulito (PAUSAR)
             }
             else
             {
-                // 2. TERMINAR FASE: Detener reloj y liquidar tramo actual
                 _timerRelojUI.Stop();
                 GuardarYLiquidarFaseActual(pausarCronometro: true);
 
-                // 3. Avanzar a la siguiente fase
                 int faseActualId = sesion.FaseActualId ?? 1;
                 int indiceActual = _listaFasesUI.FindIndex(f => f.Id == faseActualId);
                 int siguienteFaseId = faseActualId;
@@ -191,14 +238,15 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
                 }
 
                 sesion.FaseActualId = siguienteFaseId;
+                sesion.EstadoCronometro = 0;
+                sesion.FechaInicioSesion = null;
                 sesion.MinutosAcumulados = 0;
                 _sesionRepo.GuardarOSustituirSesion(sesion);
 
-                // 4. Actualizar desplegable e interfaz
                 CargarDesplegableFases(siguienteFaseId);
 
                 BotonIniciarReloj.Content = "► INICIAR";
-                BotonPausarReloj.Content = "❚❚ PAUSAR";
+                ConfigurarBotonPausar(esPausar: true, habilitado: false); // Se bloquea en la nueva fase
             }
 
             ActualizarRelojPantalla();
@@ -217,14 +265,18 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
                 _inicioInterrupcion = DateTime.Now;
                 _timerRelojUI.Stop();
 
-                // Al pausar, se liquida el bloque de trabajo y se obtiene su RegistroEsfuerzoId
                 _ultimoRegistroEsfuerzoId = GuardarYLiquidarFaseActual(pausarCronometro: true);
 
-                BotonPausarReloj.Content = "► REANUDAR";
+                sesion.EstadoCronometro = 0;
+                sesion.FechaInicioSesion = null;
+                sesion.UltimaActualizacion = DateTime.Now;
+                _sesionRepo.GuardarOSustituirSesion(sesion);
+
+                BotonIniciarReloj.Content = "⏹ TERMINAR FASE";
+                ConfigurarBotonPausar(esPausar: false, habilitado: true); // Cambia a Verde (REANUDAR)
             }
             else
             {
-                // Al reanudar, si existe un bloque previo, registramos la interrupción vinculada a RegistroEsfuerzoId
                 if (_inicioInterrupcion.HasValue && _ultimoRegistroEsfuerzoId > 0)
                 {
                     int segundosInterrupcion = (int)(DateTime.Now - _inicioInterrupcion.Value).TotalSeconds;
@@ -250,8 +302,11 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
                 _sesionRepo.GuardarOSustituirSesion(sesion);
                 _timerRelojUI.Start();
 
-                BotonPausarReloj.Content = "❚❚ PAUSAR";
+                BotonIniciarReloj.Content = "⏹ TERMINAR FASE";
+                ConfigurarBotonPausar(esPausar: true, habilitado: true); // Cambia a Azulito (PAUSAR)
             }
+
+            ActualizarRelojPantalla();
         }
 
         private void TimerRelojUI_Tick(object? sender, EventArgs e)
@@ -287,7 +342,6 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
 
             int segundosEfectivosTramo = Math.Max(segundosTramo, sesion.MinutosAcumulados);
 
-            // Solo insertar en BD si se trabajó al menos 1 segundo en este tramo
             if (sesion.ActividadId.HasValue && segundosEfectivosTramo > 0)
             {
                 idGenerado = _registroRepo.Agregar(new RegistroEsfuerzo
@@ -302,12 +356,10 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
                 _ultimoRegistroEsfuerzoId = idGenerado;
             }
 
-            // Reiniciar acumulador vivo
             sesion.MinutosAcumulados = 0;
 
             if (pausarCronometro)
             {
-                sesion.EstadoCronometro = 0;
                 sesion.FechaInicioSesion = null;
                 _fechaInicioTramo = null;
             }
@@ -362,18 +414,27 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
                 BotonOpcionesWidget.ContextMenu.IsOpen = true;
             }
         }
+        // 1. Guarda la sesión actual y cierra el widget por completo
         private void MenuItemGuardarYSalir_Click(object sender, RoutedEventArgs e)
         {
-            // 1. Detener el temporizador de interfaz
             _timerRelojUI.Stop();
-
-            // 2. Guardar y consolidar los segundos de la fase actual en RegistrosEsfuerzo
             GuardarYLiquidarFaseActual(pausarCronometro: true);
 
-            // 3. Cerrar por completo la ventana del Widget
             if (Window.GetWindow(this) is WidgetWindow widgetWindow)
             {
                 widgetWindow.Close();
+            }
+        }
+
+        // 2. Guarda la sesión actual y regresa a la vista del catálogo de tareas
+        private void MenuItemGuardarYLista_Click(object sender, RoutedEventArgs e)
+        {
+            _timerRelojUI.Stop();
+            GuardarYLiquidarFaseActual(pausarCronometro: true);
+
+            if (Window.GetWindow(this) is WidgetWindow widgetWindow)
+            {
+                widgetWindow.CargarVistaListaTareas(); // Cambia a la lista de tareas dentro del widget
             }
         }
     }
