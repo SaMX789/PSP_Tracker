@@ -137,5 +137,10 @@ namespace SistemaMonitoreoProyectos.Views
             }
         }
         #endregion
+        public void CargarVistaDefecto(long? defectoIdParaCargar = null, long? defectoPadreId = null)
+        {
+            AjustarDimensionesModoNormal();
+            ControlContenidoVista.Content = new WidgetDefectView(defectoIdParaCargar, defectoPadreId);
+        }
     }
 }
