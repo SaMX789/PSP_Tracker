@@ -144,39 +144,54 @@
         <!-- 3. Botones de Control del Tiempo y Defectos -->
         <StackPanel Grid.Row="3" Margin="0,10,0,0">
             <Grid Margin="0,0,0,10">
-    <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="*"/>
-        <ColumnDefinition Width="10"/>
-        <ColumnDefinition Width="*"/>
-    </Grid.ColumnDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="10"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
 
-    <Button x:Name="BotonIniciarReloj" 
-            Grid.Column="0" 
-            Content="► INICIAR" 
-            Style="{StaticResource EstiloBotonPrimario}" 
-            Height="42" 
-            FontSize="12"
-            Padding="0"
-            Click="BotonIniciarReloj_Click"/>
+                <Button x:Name="BotonIniciarReloj" 
+                        Grid.Column="0" 
+                        Content="► INICIAR" 
+                        Style="{StaticResource EstiloBotonPrimario}" 
+                        Height="42" 
+                        FontSize="12"
+                        Padding="0"
+                        Click="BotonIniciarReloj_Click"/>
 
-    <Button x:Name="BotonPausarReloj" 
-        Grid.Column="2" 
-        Content="❚❚ PAUSAR" 
-        Style="{StaticResource EstiloBotonSecundario}" 
-        Height="42" 
-        FontSize="12"
-        Padding="0"
-        ToolTipService.ShowOnDisabled="True"
-        Click="BotonPausarReloj_Click"/>
-</Grid>
+                <Button x:Name="BotonPausarReloj" 
+                        Grid.Column="2" 
+                        Content="❚❚ PAUSAR" 
+                        Style="{StaticResource EstiloBotonSecundario}" 
+                        Height="42" 
+                        FontSize="12"
+                        Padding="0"
+                        ToolTipService.ShowOnDisabled="True"
+                        Click="BotonPausarReloj_Click"/>
+            </Grid>
 
-            <!-- Botón Destacado + Defecto -->
-            <Button x:Name="BotonAgregarDefecto" Style="{StaticResource EstiloBotonDefecto}" Height="42">
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                    <TextBlock Text="🐞 " FontSize="14"/>
-                    <TextBlock Text="+ DEFECTO" FontSize="14"/>
-                </StackPanel>
-            </Button>
+            <!-- Botón Principal + DEFECTO -->
+            <Grid HorizontalAlignment="Stretch" Margin="0,12,0,0">
+                <Button x:Name="BotonAgregarDefecto" 
+                        Content="🐞  + DEFECTO" 
+                        Style="{StaticResource EstiloBotonInsigniaDefecto}" 
+                        Height="42" 
+                        Width="Auto"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Center"
+                        Padding="16,0"
+                        Click="BotonAgregarDefecto_Click"/>
+            </Grid>
+
+            <!-- Contenedor Horizontal para Bolitas (Rojas / Verdes) -->
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" 
+                          VerticalScrollBarVisibility="Disabled" 
+                          Margin="0,10,0,0"
+                          Focusable="False">
+                <StackPanel x:Name="ContenedorInsigniasDefectos" 
+                            Orientation="Horizontal" 
+                            HorizontalAlignment="Center"/>
+            </ScrollViewer>
         </StackPanel>
     </Grid>
 </UserControl>
