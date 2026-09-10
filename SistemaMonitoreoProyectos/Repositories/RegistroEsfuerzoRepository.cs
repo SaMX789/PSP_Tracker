@@ -81,5 +81,35 @@ namespace SistemaMonitoreoProyectos.Repositories
             object resultado = comando.ExecuteScalar() ?? 0;
             return Convert.ToInt32(resultado);
         }
+        public List<RegistroEsfuerzo> ObtenerPorActividad(int actividadId)
+        {
+            var lista = new List<RegistroEsfuerzo>();
+            using var conexion = ConexionDB.ObtenerConexion();
+
+            string query = @"
+        SELECT Id, ActividadId, FaseId, FechaInicio, FechaFin, MinutosEfectivos
+        FROM RegistrosEsfuerzo
+        WHERE ActividadId = @ActividadId
+        ORDER BY FechaInicio ASC;";
+
+            using var comando = new SqliteCommand(query, conexion);
+            comando.Parameters.AddWithValue("@ActividadId", actividadId);
+            using var reader = comando.ExecuteReader();
+
+            while (reader.Read())
+            {
+                lista.Add(new RegistroEsfuerzo
+                {
+                    Id = reader.GetInt32(0),
+                    ActividadId = reader.GetInt32(1),
+                    FaseId = reader.GetInt32(2),
+                    FechaInicio = DateTime.Parse(reader.GetString(3)),
+                    FechaFin = reader.IsDBNull(4) ? null : DateTime.Parse(reader.GetString(4)),
+                    MinutosEfectivos = reader.GetInt32(5)
+                });
+            }
+
+            return lista;
+        }
     }
 }

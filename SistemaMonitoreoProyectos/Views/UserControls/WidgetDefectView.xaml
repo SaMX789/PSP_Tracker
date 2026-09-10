@@ -58,7 +58,7 @@
                          Margin="0,0,0,14"/>
 
                 <!-- NUEVO CAMPO: TIPO DE DEFECTO -->
-                <TextBlock Text="🏷️ Tipo de Defecto" Style="{StaticResource EstiloTextoEtiqueta}" Margin="0,0,0,6"/>
+                <TextBlock Text="🏷️ Tipo de Defecto " Style="{StaticResource EstiloTextoEtiqueta}" Margin="0,0,0,6"/>
                 <ComboBox x:Name="DesplegableTipoDefecto" 
                           Height="36" 
                           Margin="0,0,0,14" 

@@ -25,9 +25,11 @@
                     <TextBlock Text="⋮" FontSize="14" FontWeight="Bold"/>
                     <Button.ContextMenu>
                         <ContextMenu x:Name="MenuOpcionesContext">
-                            <MenuItem Header="💾 Guardar y Salir" Click="MenuItemGuardarYSalir_Click"/>
-                            <MenuItem Header="📋 Guardar y Lista de Actividades" Click="MenuItemGuardarYLista_Click"/>
-                        </ContextMenu>
+    <MenuItem Header="💾 Guardar y Salir" Click="MenuItemGuardarYSalir_Click"/>
+    <MenuItem Header="📋 Guardar y Lista de Actividades" Click="MenuItemGuardarYLista_Click"/>
+    <Separator/>
+    <MenuItem Header="Finalizar Actividad" Click="MenuItemFinalizarActividadWidget_Click"/>
+</ContextMenu>
                     </Button.ContextMenu>
                 </Button>
 

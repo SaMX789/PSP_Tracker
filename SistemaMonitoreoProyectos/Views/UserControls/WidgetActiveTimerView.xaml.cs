@@ -398,6 +398,36 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
                 widgetWindow.CargarVistaListaTareas();
             }
         }
+        private void MenuItemFinalizarActividadWidget_Click(object sender, RoutedEventArgs e)
+        {
+            var sesion = _sesionRepo.ObtenerSesion();
+            if (!sesion.ActividadId.HasValue) return;
+
+            var actividadRepo = new ActividadRepository();
+            var actividad = actividadRepo.ObtenerPorId(sesion.ActividadId.Value);
+            if (actividad == null) return;
+
+            var dialog = new Views.Dialogs.ConfirmarFinalizarWindow(actividad.Proyecto)
+            {
+                Owner = Window.GetWindow(this)
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                GuardarYLiquidarFaseActual(pausarCronometro: true);
+                actividadRepo.ActualizarEstado(actividad.Id, 1);
+
+                if (Application.Current.MainWindow is MainWindow mainWindow)
+                {
+                    mainWindow.CargarListaProyectos();
+                }
+
+                if (Window.GetWindow(this) is WidgetWindow widgetWindow)
+                {
+                    widgetWindow.CargarVistaListaTareas();
+                }
+            }
+        }
 
         private void BotonAgregarDefecto_Click(object sender, RoutedEventArgs e)
         {

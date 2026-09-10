@@ -9,20 +9,13 @@
         </Grid.RowDefinitions>
 
         <!-- Encabezado -->
-        <Grid Grid.Row="0" Margin="0,0,0,20">
-            <StackPanel HorizontalAlignment="Left">
-                <TextBlock Text="/  APP WEB 1  /  TIME LOG" Style="{StaticResource EstiloTextoEtiqueta}" Margin="0,0,0,4"/>
-                <TextBlock Text="Registro de Tiempo" Style="{StaticResource EstiloTextoTituloGrande}"/>
-                <TextBlock Text="Desglose detallado de horas invertidas por fase y actividad." Style="{StaticResource EstiloTextoSubtitulo}" Margin="0,4,0,0"/>
-            </StackPanel>
-
-            <Border HorizontalAlignment="Right" VerticalAlignment="Top" Style="{StaticResource EstiloTarjetaBase}" Padding="10,6">
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="📅 " FontSize="12"/>
-                    <TextBlock Text="Semana 42" Foreground="{StaticResource BrocheTextoPrincipal}" FontSize="12"/>
-                </StackPanel>
-            </Border>
-        </Grid>
+<Grid Grid.Row="0" Margin="0,0,0,20">
+    <StackPanel HorizontalAlignment="Left">
+        <TextBlock x:Name="TextoRutaTimeLog" Text="/ PROYECTO / TIME LOG" Style="{StaticResource EstiloTextoEtiqueta}" Margin="0,0,0,4"/>
+        <TextBlock Text="Registro de Tiempo" Style="{StaticResource EstiloTextoTituloGrande}"/>
+        <TextBlock Text="Desglose detallado de horas invertidas por fase y actividad." Style="{StaticResource EstiloTextoSubtitulo}" Margin="0,4,0,0"/>
+    </StackPanel>
+</Grid>
 
         <!-- Tabla DataGrid de Registros de Tiempo -->
         <Border Grid.Row="1" Style="{StaticResource EstiloTarjetaBase}" Padding="0">
