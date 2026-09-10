@@ -14,6 +14,7 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
         private readonly IEstadoSesionRepository _sesionRepo;
         private readonly IFaseRepository _faseRepo;
         private readonly IRegistroDefectoRepository _defectoRepo;
+        private readonly ITipoDefectoRepository _tipoDefectoRepo;
 
         private readonly DispatcherTimer _timerDefectoUI = new DispatcherTimer();
         private DateTime _fechaInicioDefecto;
@@ -32,6 +33,7 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
             _sesionRepo = new EstadoSesionRepository();
             _faseRepo = new FaseRepository();
             _defectoRepo = new RegistroDefectoRepository();
+            _tipoDefectoRepo = new TipoDefectoRepository();
 
             _timerDefectoUI.Interval = TimeSpan.FromSeconds(1);
             _timerDefectoUI.Tick += (s, e) => ActualizarRelojDefectoPantalla();
@@ -76,6 +78,13 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
             int faseActiva = sesion.FaseActualId ?? 1;
             DesplegableFaseDeteccion.SelectedValue = faseActiva;
             DesplegableFaseOrigen.SelectedValue = faseActiva;
+
+            var tipos = _tipoDefectoRepo.ObtenerTodos();
+            DesplegableTipoDefecto.ItemsSource = tipos;
+            if (tipos.Any())
+            {
+                DesplegableTipoDefecto.SelectedValue = 80; // Default a 80 (Función/Lógica)
+            }
         }
 
         private void CargarDatosDefectoExistente(long defectoId)
@@ -91,9 +100,14 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
                 TextoDescripcionDefecto.Text = defecto.DescripcionError;
                 DesplegableFaseOrigen.SelectedValue = defecto.FaseOrigenId;
                 DesplegableFaseDeteccion.SelectedValue = defecto.FaseDeteccionId;
+
+                if (defecto.TipoDefectoId.HasValue)
+                {
+                    DesplegableTipoDefecto.SelectedValue = defecto.TipoDefectoId.Value;
+                }
+
                 _defectoPadreId = defecto.DefectoPadreId;
 
-                // Cargar segundos históricos directo sin multiplicar por 60
                 _segundosHistoricosPrevios = (int)defecto.TiempoCorreccionMinutos;
 
                 if (defecto.EsResuelto == 1)
@@ -293,6 +307,8 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
             long faseOrigen = DesplegableFaseOrigen.SelectedValue != null ? Convert.ToInt64(DesplegableFaseOrigen.SelectedValue) : 1;
             long faseDeteccion = DesplegableFaseDeteccion.SelectedValue != null ? Convert.ToInt64(DesplegableFaseDeteccion.SelectedValue) : 1;
 
+            int? tipoSeleccionado = DesplegableTipoDefecto.SelectedValue != null ? Convert.ToInt32(DesplegableTipoDefecto.SelectedValue) : (int?)null;
+            
             int estadoFinalResuelto = (_yaEstaResuelto || marcarComoResuelto) ? 1 : 0;
 
             var registro = new RegistroDefecto
@@ -303,6 +319,7 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
                 DescripcionError = descripcion,
                 FaseOrigenId = faseOrigen,
                 FaseDeteccionId = faseDeteccion,
+                TipoDefectoId = tipoSeleccionado,
                 TiempoCorreccionMinutos = segundosTotalesAcc, // Guarda exactamente el acumulado sin sumar extras si ya estaba listo
                 FechaRegistro = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
                 EsResuelto = estadoFinalResuelto

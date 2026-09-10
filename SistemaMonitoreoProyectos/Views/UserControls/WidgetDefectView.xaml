@@ -57,11 +57,35 @@
                          Padding="8,8"
                          Margin="0,0,0,14"/>
 
-                <TextBlock Text="➔ Fase Origen" Style="{StaticResource EstiloTextoEtiqueta}" Margin="0,0,0,6"/>
-                <ComboBox x:Name="DesplegableFaseOrigen" Height="36" Margin="0,0,0,14" DisplayMemberPath="Nombre" SelectedValuePath="Id"/>
+                <!-- NUEVO CAMPO: TIPO DE DEFECTO -->
+                <TextBlock Text="🏷️ Tipo de Defecto" Style="{StaticResource EstiloTextoEtiqueta}" Margin="0,0,0,6"/>
+                <ComboBox x:Name="DesplegableTipoDefecto" 
+                          Height="36" 
+                          Margin="0,0,0,14" 
+                          DisplayMemberPath="DisplayComboBox" 
+                          SelectedValuePath="Id"
+                          ToolTip="Categoría del defecto introducido"/>
 
-                <TextBlock Text="🔍 Fase Detección" Style="{StaticResource EstiloTextoEtiqueta}" Margin="0,0,0,6"/>
-                <ComboBox x:Name="DesplegableFaseDeteccion" Height="36" Margin="0,0,0,16" DisplayMemberPath="Nombre" SelectedValuePath="Id"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="10"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Fases reacomodadas en 2 columnas para ahorrar espacio -->
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="➔ Fase Origen" Style="{StaticResource EstiloTextoEtiqueta}" Margin="0,0,0,6"/>
+                        <ComboBox x:Name="DesplegableFaseOrigen" Height="36" DisplayMemberPath="Nombre" SelectedValuePath="Id"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="🔍 Fase Detección" Style="{StaticResource EstiloTextoEtiqueta}" Margin="0,0,0,6"/>
+                        <ComboBox x:Name="DesplegableFaseDeteccion" Height="36" DisplayMemberPath="Nombre" SelectedValuePath="Id"/>
+                    </StackPanel>
+                </Grid>
+
+                <Rectangle Height="1" Fill="{StaticResource BrocheBordeTarjeta}" Margin="0,16,0,12"/>
 
                 <!-- Botón Agregar Sub-Defecto -->
                 <Button x:Name="BotonAgregarSubDefecto" 
