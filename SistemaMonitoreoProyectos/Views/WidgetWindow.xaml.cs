@@ -1,8 +1,9 @@
-﻿using System;
-using System.Windows;
-using System.Windows.Input;
+﻿using SistemaMonitoreoProyectos.Models;
 using SistemaMonitoreoProyectos.Repositories;
 using SistemaMonitoreoProyectos.Views.UserControls;
+using System;
+using System.Windows;
+using System.Windows.Input;
 
 namespace SistemaMonitoreoProyectos.Views
 {
@@ -115,17 +116,44 @@ namespace SistemaMonitoreoProyectos.Views
                 var sesionRepo = new EstadoSesionRepository();
                 var sesion = sesionRepo.ObtenerSesion();
 
-                // Si la sesión venía activa tras el cierre abrupto, se pausa conservando los minutos guardados
-                if (sesion.EstadoCronometro == 1)
+                // Se liquida ÚNICAMENTE si la sesión venía corriendo (EstadoCronometro == 1) y tiene tiempo acumulado
+                if (sesion.EstadoCronometro == 1 && sesion.ActividadId.HasValue && sesion.FaseActualId.HasValue)
                 {
+                    int segundosAcumulados = sesion.MinutosAcumulados;
+
+                    if (segundosAcumulados <= 0 && sesion.FechaInicioSesion.HasValue)
+                    {
+                        DateTime limiteFin = sesion.UltimaActualizacion ?? DateTime.Now;
+                        segundosAcumulados = (int)(limiteFin - sesion.FechaInicioSesion.Value).TotalSeconds;
+                    }
+
+                    // Insertar únicamente si hay segundos pendientes de guardar
+                    if (segundosAcumulados > 0)
+                    {
+                        var registroRepo = new RegistroEsfuerzoRepository();
+                        DateTime inicio = sesion.FechaInicioSesion ?? DateTime.Now.AddSeconds(-segundosAcumulados);
+                        DateTime fin = sesion.UltimaActualizacion ?? DateTime.Now;
+
+                        registroRepo.Agregar(new RegistroEsfuerzo
+                        {
+                            ActividadId = sesion.ActividadId.Value,
+                            FaseId = sesion.FaseActualId.Value,
+                            FechaInicio = inicio,
+                            FechaFin = fin,
+                            MinutosEfectivos = segundosAcumulados
+                        });
+                    }
+
+                    // REINICIO DE SEGURIDAD: Se resetea el acumulador en la BD
                     sesion.EstadoCronometro = 0;
                     sesion.FechaInicioSesion = null;
+                    sesion.MinutosAcumulados = 0;
                     sesion.UltimaActualizacion = DateTime.Now;
 
                     sesionRepo.GuardarOSustituirSesion(sesion);
                 }
 
-                // Si existe una tarea seleccionada en EstadoSesion, abre directamente el cronómetro con su progreso
+                // Cargar el widget en la actividad activa
                 if (sesion.ActividadId.HasValue)
                 {
                     CargarTimeActividadCreada();
