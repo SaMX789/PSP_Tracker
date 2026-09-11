@@ -1,184 +1,285 @@
 ﻿<UserControl x:Class="SistemaMonitoreoProyectos.Views.UserControls.ActivityOverviewView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+    
+    <!-- Contenedor con Scroll para adaptarse a cualquier tamaño de pantalla -->
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False">
+        <Grid Margin="0,0,10,10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
 
-        <!-- Encabezado de la Actividad -->
-        <Grid Grid.Row="0" Margin="0,0,0,20">
-            <StackPanel HorizontalAlignment="Left">
-                <TextBlock Text="/  APP WEB 1" Style="{StaticResource EstiloTextoEtiqueta}" Margin="0,0,0,4"/>
-                <TextBlock Text="Resumen de Actividad - Postmortem" Style="{StaticResource EstiloTextoTituloGrande}"/>
-                <TextBlock Text="Análisis detallado de rendimiento y precisión de estimaciones." Style="{StaticResource EstiloTextoSubtitulo}" Margin="0,4,0,0"/>
-            </StackPanel>
-
-            <Border HorizontalAlignment="Right" VerticalAlignment="Top" Background="#1C2B20" BorderBrush="#2D5A39" BorderThickness="1" CornerRadius="12" Padding="12,6">
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="✓ " Foreground="#4ADE80" FontWeight="Bold"/>
-                    <TextBlock Text="COMPLETADO" Foreground="#4ADE80" FontWeight="Bold" FontSize="12"/>
+            <!-- Encabezado de la Actividad -->
+            <Grid Grid.Row="0" Margin="0,0,0,20">
+                <StackPanel HorizontalAlignment="Left">
+                    <TextBlock x:Name="TextoRutaProyecto" Text="/ PROYECTO" Style="{StaticResource EstiloTextoEtiqueta}" Margin="0,0,0,4"/>
+                    <TextBlock x:Name="TextoTituloPagina" Text="Resumen de Actividad - Postmortem" Style="{StaticResource EstiloTextoTituloGrande}"/>
+                    <TextBlock Text="Análisis detallado de rendimiento y precisión de estimaciones." Style="{StaticResource EstiloTextoSubtitulo}" Margin="0,4,0,0"/>
                 </StackPanel>
-            </Border>
-        </Grid>
 
-        <!-- Panel Principal de Métrica y Gráficos -->
-        <Grid Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="2*"/>
-                <ColumnDefinition Width="20"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
+                <!-- Badge de Estado Dinámico -->
+                <Border x:Name="BadgeEstadoProyecto" HorizontalAlignment="Right" VerticalAlignment="Top" CornerRadius="12" Padding="12,6" Background="#202B42">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock x:Name="TextoIconoEstado" Text="&#xE916; " FontFamily="Segoe MDL2 Assets" Foreground="#60A5FA" FontWeight="Bold" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="TextoEstadoProyecto" Text="EN CURSO" Foreground="#60A5FA" FontWeight="Bold" FontSize="12" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
 
-            <!-- Columna Izquierda: Tiempos y Defectos -->
-            <StackPanel Grid.Column="0">
-                <!-- Seccion Métricas de Tiempo -->
-                <Border Style="{StaticResource EstiloTarjetaBase}" Margin="0,0,0,16">
-                    <StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
-                            <TextBlock Text="⏱ " FontSize="16"/>
-                            <TextBlock Text="Métricas de Tiempo" Foreground="{StaticResource BrocheTextoPrincipal}" FontWeight="Bold" FontSize="16"/>
-                        </StackPanel>
+            <!-- Grid Principal (Distribución en 2 Columnas Adaptables) -->
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1.4*"/>
+                    <ColumnDefinition Width="20"/>
+                    <ColumnDefinition Width="1*"/>
+                </Grid.ColumnDefinitions>
 
-                        <!-- Fila 1: Estimado vs Real -->
-                        <Grid Margin="0,0,0,14">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="12"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
+                <!-- COLUMNA IZQUIERDA: MÉTRICAS Y CALIDAD -->
+                <StackPanel Grid.Column="0">
+                    
+                    <!-- Tarjeta 1: Métricas de Tiempo -->
+                    <Border Style="{StaticResource EstiloTarjetaBase}" Margin="0,0,0,16">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                                <Border Width="28" Height="28" CornerRadius="6" Background="#202B42" Margin="0,0,10,0">
+                                    <TextBlock Text="&#xE916;" FontFamily="Segoe MDL2 Assets" FontSize="14" Foreground="#60A5FA" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <TextBlock Text="Métricas de Tiempo y Eficiencia" Foreground="{StaticResource BrocheTextoPrincipal}" FontWeight="Bold" FontSize="15" VerticalAlignment="Center"/>
+                            </StackPanel>
 
-                            <Border Grid.Column="0" Background="#18181B" CornerRadius="8" Padding="12">
-                                <StackPanel>
-                                    <TextBlock Text="TIEMPO ESTIMADO" Style="{StaticResource EstiloTextoEtiqueta}"/>
-                                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                                        <TextBlock x:Name="TextoTiempoEstimadoHoras" Text="3.5" FontSize="26" FontWeight="Bold" Foreground="{StaticResource BrocheTextoPrincipal}"/>
-                                        <TextBlock Text=" horas" FontSize="14" Foreground="{StaticResource BrocheTextoSecundario}" VerticalAlignment="Bottom" Margin="4,0,0,3"/>
+                            <!-- Estimado vs Real -->
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="12"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Border Grid.Column="0" Background="#16161A" BorderBrush="{StaticResource BrocheBordeTarjeta}" BorderThickness="1" CornerRadius="8" Padding="12">
+                                    <StackPanel>
+                                        <TextBlock Text="TIEMPO ESTIMADO" Style="{StaticResource EstiloTextoEtiqueta}" FontSize="10"/>
+                                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                            <TextBlock x:Name="TextoTiempoEstimadoHoras" Text="0,0" FontSize="24" FontWeight="Bold" Foreground="{StaticResource BrocheTextoPrincipal}"/>
+                                            <TextBlock Text=" hrs" FontSize="12" Foreground="{StaticResource BrocheTextoSecundario}" VerticalAlignment="Bottom" Margin="2,0,0,2"/>
+                                        </StackPanel>
+                                        <TextBlock x:Name="TextoTiempoEstimadoMinutos" Text="(0 min)" Style="{StaticResource EstiloTextoEtiqueta}" FontSize="10"/>
                                     </StackPanel>
-                                    <TextBlock x:Name="TextoTiempoEstimadoMinutos" Text="(210 min)" Style="{StaticResource EstiloTextoEtiqueta}" Margin="0,2,0,0"/>
-                                </StackPanel>
-                            </Border>
+                                </Border>
 
-                            <Border Grid.Column="2" Background="#18181B" CornerRadius="8" Padding="12">
-                                <StackPanel>
-                                    <TextBlock Text="TIEMPO REAL EFECTIVO" Style="{StaticResource EstiloTextoEtiqueta}"/>
-                                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                                        <TextBlock x:Name="TextoTiempoRealHoras" Text="3.8" FontSize="26" FontWeight="Bold" Foreground="{StaticResource BrocheAcentoPrimario}"/>
-                                        <TextBlock Text=" horas" FontSize="14" Foreground="{StaticResource BrocheTextoSecundario}" VerticalAlignment="Bottom" Margin="4,0,0,3"/>
+                                <Border Grid.Column="2" Background="#16161A" BorderBrush="{StaticResource BrocheBordeTarjeta}" BorderThickness="1" CornerRadius="8" Padding="12">
+                                    <StackPanel>
+                                        <TextBlock Text="TIEMPO REAL EFECTIVO" Style="{StaticResource EstiloTextoEtiqueta}" FontSize="10"/>
+                                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                            <TextBlock x:Name="TextoTiempoRealHoras" Text="0,0" FontSize="24" FontWeight="Bold" Foreground="{StaticResource BrocheAcentoPrimario}"/>
+                                            <TextBlock Text=" hrs" FontSize="12" Foreground="{StaticResource BrocheTextoSecundario}" VerticalAlignment="Bottom" Margin="2,0,0,2"/>
+                                        </StackPanel>
+                                        <TextBlock x:Name="TextoTiempoRealMinutos" Text="(0 min)" Style="{StaticResource EstiloTextoEtiqueta}" FontSize="10"/>
                                     </StackPanel>
-                                    <TextBlock x:Name="TextoTiempoRealMinutos" Text="(228 min)" Style="{StaticResource EstiloTextoEtiqueta}" Margin="0,2,0,0"/>
-                                </StackPanel>
-                            </Border>
-                        </Grid>
-
-                        <!-- Fila 2: Desviación -->
-                        <Border Background="#18181B" CornerRadius="8" Padding="12" Margin="0,0,0,14">
-                            <Grid>
-                                <StackPanel HorizontalAlignment="Left">
-                                    <TextBlock Text="DESVIACIÓN" Style="{StaticResource EstiloTextoEtiqueta}"/>
-                                    <TextBlock x:Name="TextoPorcentajeDesviacion" Text="+8.5%" FontSize="22" FontWeight="Bold" Foreground="#FF6B6B" Margin="0,2,0,0"/>
-                                </StackPanel>
-                                <Border HorizontalAlignment="Right" VerticalAlignment="Center" Background="#202B42" CornerRadius="8" Padding="10,6">
-                                    <TextBlock Text="✓ Dentro del rango aceptable (±10%)" Foreground="#60A5FA" FontSize="12" FontWeight="SemiBold"/>
                                 </Border>
                             </Grid>
-                        </Border>
 
-                        <!-- Fila 3: Retrabajo e Interrupciones -->
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="12"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-
-                            <Border Grid.Column="0" Background="#18181B" CornerRadius="8" Padding="12">
+                            <!-- Barra de Consumo -->
+                            <Border Background="#16161A" BorderBrush="{StaticResource BrocheBordeTarjeta}" BorderThickness="1" CornerRadius="8" Padding="12,8" Margin="0,0,0,12">
                                 <StackPanel>
-                                    <TextBlock Text="PORCENTAJE DE RETRABAJO" Style="{StaticResource EstiloTextoEtiqueta}"/>
-                                    <TextBlock x:Name="TextoPorcentajeRetrabajo" Text="12%" FontSize="24" FontWeight="Bold" Foreground="{StaticResource BrocheTextoPrincipal}" Margin="0,4,0,0"/>
-                                    <TextBlock x:Name="TextoTiempoRetrabajo" Text="TIEMPO DE RETRABAJO: 15 min" Style="{StaticResource EstiloTextoEtiqueta}" HorizontalAlignment="Right" Margin="0,4,0,0"/>
+                                    <Grid Margin="0,0,0,4">
+                                        <TextBlock Text="CONSUMO DEL TIEMPO ESTIMADO" Style="{StaticResource EstiloTextoEtiqueta}" FontSize="10"/>
+                                        <TextBlock x:Name="TextoPorcentajeConsumo" Text="0,0%" Foreground="{StaticResource BrocheTextoPrincipal}" FontWeight="Bold" FontSize="11" HorizontalAlignment="Right"/>
+                                    </Grid>
+                                    <ProgressBar x:Name="BarraConsumoTiempo" Height="5" Background="#2A2A35" Foreground="{StaticResource BrocheAcentoPrimario}" BorderThickness="0" Value="0" Maximum="100"/>
                                 </StackPanel>
                             </Border>
 
-                            <Border Grid.Column="2" Background="#18181B" CornerRadius="8" Padding="12">
-                                <StackPanel>
-                                    <TextBlock Text="INTERRUPCIONES TOTALES" Style="{StaticResource EstiloTextoEtiqueta}"/>
-                                    <TextBlock x:Name="TextoTotalInterrupciones" Text="03" FontSize="24" FontWeight="Bold" Foreground="{StaticResource BrocheTextoPrincipal}" Margin="0,4,0,0"/>
-                                    <TextBlock x:Name="TextoTiempoPerdidoInterrupciones" Text="TIEMPO PERDIDO: 15 min" Style="{StaticResource EstiloTextoEtiqueta}" HorizontalAlignment="Right" Margin="0,4,0,0"/>
-                                </StackPanel>
+                            <!-- Desviación -->
+                            <Border Background="#16161A" BorderBrush="{StaticResource BrocheBordeTarjeta}" BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,0,0,12">
+                                <Grid>
+                                    <StackPanel HorizontalAlignment="Left" VerticalAlignment="Center">
+                                        <TextBlock Text="DESVIACIÓN" Style="{StaticResource EstiloTextoEtiqueta}" FontSize="10"/>
+                                        <TextBlock x:Name="TextoPorcentajeDesviacion" Text="0,0%" FontSize="18" FontWeight="Bold" Foreground="#60A5FA" Margin="0,2,0,0"/>
+                                    </StackPanel>
+                                    
+                                    <Border x:Name="BadgeEstadoDesviacion" HorizontalAlignment="Right" VerticalAlignment="Center" Background="#202B42" CornerRadius="6" Padding="10,5">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock x:Name="IconoEstadoDesviacion" Text="&#xE73E; " FontFamily="Segoe MDL2 Assets" Foreground="#60A5FA" FontSize="11" VerticalAlignment="Center"/>
+                                            <TextBlock x:Name="TextoEstadoDesviacion" Text="Dentro del rango aceptable" Foreground="#60A5FA" FontSize="11" FontWeight="SemiBold"/>
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
                             </Border>
-                        </Grid>
-                    </StackPanel>
-                </Border>
 
-                <!-- Tarjeta Calidad y Defectos -->
-                <Border Style="{StaticResource EstiloTarjetaBase}">
-                    <StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
-                            <TextBlock Text="🐞 " FontSize="16"/>
-                            <TextBlock Text="Calidad y Defectos" Foreground="{StaticResource BrocheTextoPrincipal}" FontWeight="Bold" FontSize="16"/>
+                            <!-- Rediseño Limpio: Retrabajo e Interrupciones -->
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="12"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Retrabajo Card -->
+                                <Border Grid.Column="0" Background="#16161A" BorderBrush="{StaticResource BrocheBordeTarjeta}" BorderThickness="1" CornerRadius="8" Padding="12">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="4"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Border Grid.Column="0" Background="#F59E0B" CornerRadius="2"/>
+                                        <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                                            <TextBlock Text="RETRABAJO (DEFECTOS)" Style="{StaticResource EstiloTextoEtiqueta}" FontSize="9"/>
+                                            <TextBlock x:Name="TextoPorcentajeRetrabajo" Text="0,0%" FontSize="18" FontWeight="Bold" Foreground="{StaticResource BrocheTextoPrincipal}" Margin="0,2,0,0"/>
+                                            <TextBlock x:Name="TextoTiempoRetrabajo" Text="Invertido: 0 min" Foreground="{StaticResource BrocheTextoSecundario}" FontSize="11" Margin="0,2,0,0"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Interrupciones Card -->
+                                <Border Grid.Column="2" Background="#16161A" BorderBrush="{StaticResource BrocheBordeTarjeta}" BorderThickness="1" CornerRadius="8" Padding="12">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="4"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Border Grid.Column="0" Background="#8E8E93" CornerRadius="2"/>
+                                        <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                                            <TextBlock Text="PAUSAS Y DISTRACCIONES" Style="{StaticResource EstiloTextoEtiqueta}" FontSize="9"/>
+                                            <TextBlock x:Name="TextoTotalInterrupciones" Text="0 Eventos" FontSize="18" FontWeight="Bold" Foreground="{StaticResource BrocheTextoPrincipal}" Margin="0,2,0,0"/>
+                                            <TextBlock x:Name="TextoTiempoPerdidoInterrupciones" Text="Perdido: 0 min" Foreground="{StaticResource BrocheTextoSecundario}" FontSize="11" Margin="0,2,0,0"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Tarjeta 2: Calidad y Defectos -->
+                    <Border Style="{StaticResource EstiloTarjetaBase}">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                                <Border Width="28" Height="28" CornerRadius="6" Background="#3B2020" Margin="0,0,10,0">
+                                    <TextBlock Text="&#xEBE8;" FontFamily="Segoe MDL2 Assets" FontSize="14" Foreground="#FF6B6B" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <TextBlock Text="Calidad y Control de Defectos" Foreground="{StaticResource BrocheTextoPrincipal}" FontWeight="Bold" FontSize="15" VerticalAlignment="Center"/>
+                            </StackPanel>
+
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="10"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="10"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Border Grid.Column="0" Background="#16161A" BorderBrush="{StaticResource BrocheBordeTarjeta}" BorderThickness="1" CornerRadius="8" Padding="10">
+                                    <StackPanel HorizontalAlignment="Center">
+                                        <TextBlock Text="TOTALES" Style="{StaticResource EstiloTextoEtiqueta}" FontSize="9" HorizontalAlignment="Center"/>
+                                        <TextBlock x:Name="TextoDefectosTotales" Text="00" FontSize="20" FontWeight="Bold" Foreground="#FF4D4D" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Grid.Column="2" Background="#16161A" BorderBrush="{StaticResource BrocheBordeTarjeta}" BorderThickness="1" CornerRadius="8" Padding="10">
+                                    <StackPanel HorizontalAlignment="Center">
+                                        <TextBlock Text="RESUELTOS" Style="{StaticResource EstiloTextoEtiqueta}" FontSize="9" HorizontalAlignment="Center"/>
+                                        <TextBlock x:Name="TextoDefectosCorregidos" Text="00" FontSize="20" FontWeight="Bold" Foreground="#10B981" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Grid.Column="4" Background="#16161A" BorderBrush="{StaticResource BrocheBordeTarjeta}" BorderThickness="1" CornerRadius="8" Padding="10">
+                                    <StackPanel HorizontalAlignment="Center">
+                                        <TextBlock Text="PENDIENTES" Style="{StaticResource EstiloTextoEtiqueta}" FontSize="9" HorizontalAlignment="Center"/>
+                                        <TextBlock x:Name="TextoDefectosPendientes" Text="00" FontSize="20" FontWeight="Bold" Foreground="#F59E0B" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+
+                            <!-- MTTR y Tasa -->
+                            <Border Background="#16161A" BorderBrush="{StaticResource BrocheBordeTarjeta}" BorderThickness="1" CornerRadius="8" Padding="12,10">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="12"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0">
+                                        <Grid Margin="0,0,0,4">
+                                            <TextBlock Text="TASA DE RESOLUCIÓN" Style="{StaticResource EstiloTextoEtiqueta}" FontSize="10"/>
+                                            <TextBlock x:Name="TextoTasaResolucionPct" Text="100%" Foreground="#10B981" FontWeight="Bold" FontSize="11" HorizontalAlignment="Right"/>
+                                        </Grid>
+                                        <ProgressBar x:Name="BarraTasaResolucion" Height="5" Background="#2A2A35" Foreground="#10B981" BorderThickness="0" Value="100" Maximum="100"/>
+                                    </StackPanel>
+
+                                    <Border Grid.Column="2" BorderBrush="{StaticResource BrocheBordeTarjeta}" BorderThickness="1,0,0,0" Padding="12,0,0,0">
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock Text="TIEMPO PROM./ERROR" Style="{StaticResource EstiloTextoEtiqueta}" FontSize="9"/>
+                                            <TextBlock x:Name="TextoPromedioCorreccionMTTR" Text="0,0 min" Foreground="{StaticResource BrocheTextoPrincipal}" FontWeight="Bold" FontSize="12" Margin="0,2,0,0"/>
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- COLUMNA DERECHA: DISTRIBUCIÓN POR FASE Y MACROFASE -->
+                <Border Grid.Column="2" Style="{StaticResource EstiloTarjetaBase}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,16">
+                            <TextBlock Text="&#xE9D2;" FontFamily="Segoe MDL2 Assets" FontSize="16" Foreground="{StaticResource BrocheAcentoPrimario}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <TextBlock Text="Distribución por Fase" Foreground="{StaticResource BrocheTextoPrincipal}" FontWeight="Bold" FontSize="15" VerticalAlignment="Center"/>
                         </StackPanel>
 
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
+                        <!-- ItemsControl Dinámico -->
+                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False">
+                            <ItemsControl x:Name="ListaMacroFases">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Margin="0,0,4,14">
+                                            <Grid Margin="0,0,0,4">
+                                                <TextBlock Text="{Binding Nombre}" Foreground="{StaticResource BrocheTextoPrincipal}" FontWeight="Bold" FontSize="12"/>
+                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                                    <TextBlock Text="{Binding MinutosTexto}" Foreground="{StaticResource BrocheTextoSecundario}" FontSize="11" Margin="0,0,6,0"/>
+                                                    <TextBlock Text="{Binding PorcentajeTexto}" Foreground="{StaticResource BrocheAcentoPrimario}" FontWeight="Bold" FontSize="11"/>
+                                                </StackPanel>
+                                            </Grid>
 
-                            <StackPanel Grid.Column="0" HorizontalAlignment="Center">
-                                <TextBlock Text="DEFECTOS TOTALES" Style="{StaticResource EstiloTextoEtiqueta}" HorizontalAlignment="Center"/>
-                                <TextBlock x:Name="TextoDefectosTotales" Text="01" FontSize="36" FontWeight="Bold" Foreground="#FF4D4D" HorizontalAlignment="Center"/>
-                            </StackPanel>
+                                            <!-- Barra de Progreso por MacroFase -->
+                                            <ProgressBar Value="{Binding Porcentaje}" Maximum="100" Height="6" BorderThickness="0" Background="#2A2A35" Foreground="{Binding ColorHex}" Margin="0,0,0,6"/>
 
-                            <StackPanel Grid.Column="1" HorizontalAlignment="Center">
-                                <TextBlock Text="DEFECTOS CORREGIDOS" Style="{StaticResource EstiloTextoEtiqueta}" HorizontalAlignment="Center"/>
-                                <TextBlock x:Name="TextoDefectosCorregidos" Text="01" FontSize="36" FontWeight="Bold" Foreground="{StaticResource BrocheAcentoPrimario}" HorizontalAlignment="Center"/>
-                            </StackPanel>
-                        </Grid>
-                    </StackPanel>
-                </Border>
-            </StackPanel>
+                                            <!-- Sub-fases PSP -->
+                                            <ItemsControl ItemsSource="{Binding FasesHijas}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Grid Margin="8,1,0,1">
+                                                            <TextBlock Text="{Binding Nombre}" Foreground="{StaticResource BrocheTextoSecundario}" FontSize="11"/>
+                                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                                                <TextBlock Text="{Binding MinutosTexto}" Foreground="{StaticResource BrocheTextoDeshabilitado}" FontSize="10" Margin="0,0,6,0"/>
+                                                                <TextBlock Text="{Binding PorcentajeTexto}" Foreground="{StaticResource BrocheTextoSecundario}" FontSize="10"/>
+                                                            </StackPanel>
+                                                        </Grid>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
 
-            <!-- Columna Derecha: Distribución por Fase -->
-            <Border Grid.Column="2" Style="{StaticResource EstiloTarjetaBase}">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-
-                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,20">
-                        <TextBlock Text="📊 " FontSize="16"/>
-                        <TextBlock Text="Distribución por Fase" Foreground="{StaticResource BrocheTextoPrincipal}" FontWeight="Bold" FontSize="16"/>
-                    </StackPanel>
-
-                    <!-- Lista de Fases y sus minutos -->
-                    <StackPanel Grid.Row="1" VerticalAlignment="Center">
-                        <Grid Margin="0,0,0,16">
-                            <TextBlock Text="Planeación" Foreground="{StaticResource BrocheTextoPrincipal}" FontWeight="SemiBold"/>
-                            <TextBlock x:Name="TextoTiempoPlaneacion" Text="20 min (8.7%)" Foreground="{StaticResource BrocheTextoSecundario}" HorizontalAlignment="Right"/>
-                        </Grid>
-
-                        <Grid Margin="0,0,0,16">
-                            <TextBlock Text="Construcción" Foreground="{StaticResource BrocheTextoPrincipal}" FontWeight="SemiBold"/>
-                            <TextBlock x:Name="TextoTiempoConstruccion" Text="160 min (70.1%)" Foreground="{StaticResource BrocheTextoSecundario}" HorizontalAlignment="Right"/>
-                        </Grid>
-
-                        <Grid Margin="0,0,0,16">
-                            <TextBlock Text="Pruebas" Foreground="{StaticResource BrocheTextoPrincipal}" FontWeight="SemiBold"/>
-                            <TextBlock x:Name="TextoTiempoPruebas" Text="48 min (21.2%)" Foreground="{StaticResource BrocheTextoSecundario}" HorizontalAlignment="Right"/>
-                        </Grid>
-                    </StackPanel>
-
-                    <!-- Total Registrado Bottom -->
-                    <Grid Grid.Row="2" Margin="0,20,0,0">
-                        <TextBlock Text="Total Registrado" Foreground="{StaticResource BrocheTextoSecundario}"/>
-                        <TextBlock x:Name="TextoTotalRegistradoFases" Text="228 min" Foreground="{StaticResource BrocheTextoPrincipal}" FontWeight="Bold" FontSize="18" HorizontalAlignment="Right"/>
+                        <Border Grid.Row="2" BorderBrush="{StaticResource BrocheBordeTarjeta}" BorderThickness="0,1,0,0" Padding="0,10,0,0" Margin="0,8,0,0">
+                            <Grid>
+                                <TextBlock Text="Total Registrado" Foreground="{StaticResource BrocheTextoSecundario}" VerticalAlignment="Center" FontSize="12"/>
+                                <TextBlock x:Name="TextoTotalRegistradoFases" Text="0 min" Foreground="{StaticResource BrocheTextoPrincipal}" FontWeight="Bold" FontSize="16" HorizontalAlignment="Right"/>
+                            </Grid>
+                        </Border>
                     </Grid>
-                </Grid>
-            </Border>
+                </Border>
+            </Grid>
         </Grid>
-    </Grid>
+    </ScrollViewer>
 </UserControl>

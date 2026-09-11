@@ -325,6 +325,7 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
             var sesion = _sesionRepo.ObtenerSesion();
             if (!sesion.ActividadId.HasValue || !sesion.FaseActualId.HasValue) return 0;
 
+            // 1. Guardar el tramo en la tabla permanente de RegistrosEsfuerzo
             var nuevoRegistro = new RegistroEsfuerzo
             {
                 ActividadId = sesion.ActividadId.Value,
@@ -336,7 +337,15 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
 
             long idGenerado = _registroRepo.Agregar(nuevoRegistro);
 
-            // [REPARACIÓN CRUCIAL 2]: Sincronizar en memoria de inmediato para que el reloj no "salte" o retroceda visualmente a 0
+            // 2. REPARACIÓN CLAVE: Limpiar EstadoSesion en SQLite inmediatamente
+            // para que no quede residuo de EstadoCronometro=1 o MinutosAcumulados>0
+            sesion.EstadoCronometro = 0;
+            sesion.FechaInicioSesion = null;
+            sesion.MinutosAcumulados = 0;
+            sesion.UltimaActualizacion = DateTime.Now;
+            _sesionRepo.GuardarOSustituirSesion(sesion);
+
+            // 3. Sincronizar acumulados históricos de la actividad
             _segundosHistoricosOtros = _registroRepo.ObtenerMinutosTotalesPorActividad(sesion.ActividadId.Value);
 
             return idGenerado;
@@ -396,6 +405,36 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
             if (Window.GetWindow(this) is WidgetWindow widgetWindow)
             {
                 widgetWindow.CargarVistaListaTareas();
+            }
+        }
+        private void MenuItemFinalizarActividadWidget_Click(object sender, RoutedEventArgs e)
+        {
+            var sesion = _sesionRepo.ObtenerSesion();
+            if (!sesion.ActividadId.HasValue) return;
+
+            var actividadRepo = new ActividadRepository();
+            var actividad = actividadRepo.ObtenerPorId(sesion.ActividadId.Value);
+            if (actividad == null) return;
+
+            var dialog = new Views.Dialogs.ConfirmarFinalizarWindow(actividad.Proyecto)
+            {
+                Owner = Window.GetWindow(this)
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                GuardarYLiquidarFaseActual(pausarCronometro: true);
+                actividadRepo.ActualizarEstado(actividad.Id, 1);
+
+                if (Application.Current.MainWindow is MainWindow mainWindow)
+                {
+                    mainWindow.CargarListaProyectos();
+                }
+
+                if (Window.GetWindow(this) is WidgetWindow widgetWindow)
+                {
+                    widgetWindow.CargarVistaListaTareas();
+                }
             }
         }
 

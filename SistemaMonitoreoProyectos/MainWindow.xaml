@@ -77,22 +77,22 @@
                     <TextBlock Text="W" Foreground="#121214" FontWeight="Bold" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
 
-                <!-- Botones de Navegación por Pestañas -->
-                <StackPanel Grid.Row="1" HorizontalAlignment="Center">
-                    <Button x:Name="BotonNavegarOverview" Style="{StaticResource EstiloBotonSecundario}" Width="44" Height="44" Padding="0" Margin="0,0,0,12" ToolTip="Resumen Postmortem">
-                        <TextBlock Text="📊" FontSize="18"/>
-                    </Button>
-                    <Button x:Name="BotonNavegarTimeLog" Style="{StaticResource EstiloBotonSecundario}" Width="44" Height="44" Padding="0" Margin="0,0,0,12" ToolTip="Registro de Tiempo">
-                        <TextBlock Text="⏱" FontSize="18"/>
-                    </Button>
-                    <Button x:Name="BotonNavegarDefectLog" Style="{StaticResource EstiloBotonSecundario}" Width="44" Height="44" Padding="0" Margin="0,0,0,12" ToolTip="Bitácora de Defectos">
-                        <TextBlock Text="🐞" FontSize="18"/>
-                    </Button>
-                </StackPanel>
+                <!-- En el Panel Derecho de MainWindow.xaml -->
+<StackPanel Grid.Row="1" HorizontalAlignment="Center">
+    <Button x:Name="BotonNavegarOverview" Style="{StaticResource EstiloBotonSecundario}" Width="44" Height="44" Padding="0" Margin="0,0,0,12" ToolTip="Resumen Postmortem">
+        <TextBlock Text="&#xE9D2;" FontFamily="Segoe MDL2 Assets" FontSize="18"/>
+    </Button>
+    <Button x:Name="BotonNavegarTimeLog" Style="{StaticResource EstiloBotonSecundario}" Width="44" Height="44" Padding="0" Margin="0,0,0,12" ToolTip="Registro de Tiempo">
+        <TextBlock Text="&#xE916;" FontFamily="Segoe MDL2 Assets" FontSize="18"/>
+    </Button>
+    <Button x:Name="BotonNavegarDefectLog" Style="{StaticResource EstiloBotonSecundario}" Width="44" Height="44" Padding="0" Margin="0,0,0,12" ToolTip="Bitácora de Defectos">
+        <TextBlock Text="&#xEBE8;" FontFamily="Segoe MDL2 Assets" FontSize="18"/>
+    </Button>
+</StackPanel>
 
                 <!-- Icono Configuración Bottom -->
                 <Button Grid.Row="2" x:Name="BotonConfiguracion" Style="{StaticResource EstiloBotonSecundario}" Width="44" Height="44" Padding="0" HorizontalAlignment="Center">
-                    <TextBlock Text="⚙" FontSize="18"/>
+                    <TextBlock Text="&#xE713;" FontFamily="Segoe MDL2 Assets" FontSize="18"/>
                 </Button>
             </Grid>
         </Border>

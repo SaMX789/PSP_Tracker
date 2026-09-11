@@ -1,0 +1,68 @@
+﻿<Window x:Class="SistemaMonitoreoProyectos.Views.Dialogs.ConfirmarFinalizarWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Finalizar Actividad" 
+        Height="260" Width="440"
+        WindowStyle="None" 
+        AllowsTransparency="True" 
+        Background="Transparent"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize">
+
+    <Border Background="{StaticResource BrocheFondoTarjeta}" 
+            BorderBrush="{StaticResource BrocheBordeTarjeta}" 
+            BorderThickness="1" 
+            CornerRadius="16" 
+            Padding="24">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Título -->
+            <TextBlock Grid.Row="0" Text="Finalizar actividad" Style="{StaticResource EstiloTextoTituloGrande}" FontSize="18" Margin="0,0,0,8"/>
+            
+            <!-- Subtítulo / Pregunta -->
+            <TextBlock Grid.Row="1" Text="¿Quieres dar por finalizada la actividad? Esta acción cambiará su estado a completado." Foreground="{StaticResource BrocheTextoSecundario}" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,16"/>
+
+            <!-- Campo de Confirmación -->
+            <StackPanel Grid.Row="2">
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                    <TextBlock Text="Para confirmar, escriba “" Foreground="{StaticResource BrocheTextoPrincipal}" FontSize="12"/>
+                    <TextBlock x:Name="TextoNombreRequerido" Text="NombreProyecto" Foreground="{StaticResource BrocheTextoPrincipal}" FontWeight="Bold" FontSize="12"/>
+                    <TextBlock Text="”." Foreground="{StaticResource BrocheTextoPrincipal}" FontSize="12"/>
+                </StackPanel>
+
+                <TextBox x:Name="TextoEntradaConfirmacion" 
+                         Style="{StaticResource EstiloCampoTexto}" 
+                         Height="36" 
+                         VerticalContentAlignment="Center" 
+                         Padding="10,0"
+                         TextChanged="TextoEntradaConfirmacion_TextChanged"/>
+            </StackPanel>
+
+            <!-- Botones de Acción -->
+            <Grid Grid.Row="3" Margin="0,16,0,0">
+                <Button x:Name="BotonCancelar" 
+                        Content="Cancelar" 
+                        Style="{StaticResource EstiloBotonSecundario}" 
+                        Width="100" 
+                        Height="36" 
+                        HorizontalAlignment="Left"
+                        Click="BotonCancelar_Click"/>
+
+                <Button x:Name="BotonFinalizar" 
+                        Content="Finalizar actividad" 
+                        Style="{StaticResource EstiloBotonDefecto}" 
+                        Height="36" 
+                        Padding="16,0"
+                        HorizontalAlignment="Right"
+                        IsEnabled="False"
+                        Click="BotonFinalizar_Click"/>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>

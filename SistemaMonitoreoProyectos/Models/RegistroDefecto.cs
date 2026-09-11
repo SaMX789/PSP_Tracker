@@ -13,5 +13,7 @@ namespace SistemaMonitoreoProyectos.Models
         public long TiempoCorreccionMinutos { get; set; }
         public string FechaRegistro { get; set; } = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
         public int EsResuelto { get; set; } = 0; // 0: Pendiente (Rojo), 1: Resuelto (Verde)
+        public int? TipoDefectoId { get; set; }
+        public string? FechaResolucion { get; set; }
     }
 }
