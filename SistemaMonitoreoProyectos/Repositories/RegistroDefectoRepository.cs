@@ -10,36 +10,20 @@ namespace SistemaMonitoreoProyectos.Repositories
     {
         public RegistroDefectoRepository()
         {
-            AsegurarColumnaEsResuelto();
-        }
-
-        private void AsegurarColumnaEsResuelto()
-        {
-            try
-            {
-                using var conexion = ConexionDB.ObtenerConexion();
-                var sql = "ALTER TABLE RegistrosDefectos ADD COLUMN EsResuelto INTEGER DEFAULT 0;";
-                using var comando = new SqliteCommand(sql, conexion);
-                comando.ExecuteNonQuery();
-            }
-            catch
-            {
-                // La columna ya existe en SQLite
-            }
+            
         }
 
         public long Agregar(RegistroDefecto defecto)
         {
             using var conexion = ConexionDB.ObtenerConexion();
 
-            // Agregamos TipoDefectoId al query de inserción
             string query = @"
                 INSERT INTO RegistrosDefectos 
                 (ActividadId, DefectoPadreId, DescripcionError, FaseOrigenId, FaseDeteccionId, 
-                 TiempoCorreccionMinutos, FechaRegistro, EsResuelto, TipoDefectoId)
+                 TiempoCorreccionMinutos, FechaRegistro, EsResuelto, TipoDefectoId, FechaResolucion)
                 VALUES 
                 (@ActividadId, @DefectoPadreId, @DescripcionError, @FaseOrigenId, @FaseDeteccionId, 
-                 @TiempoCorreccionMinutos, @FechaRegistro, @EsResuelto, @TipoDefectoId);
+                 @TiempoCorreccionMinutos, @FechaRegistro, @EsResuelto, @TipoDefectoId, @FechaResolucion);
                 SELECT last_insert_rowid();";
 
             using var comando = new SqliteCommand(query, conexion);
@@ -52,6 +36,7 @@ namespace SistemaMonitoreoProyectos.Repositories
             comando.Parameters.AddWithValue("@FechaRegistro", defecto.FechaRegistro);
             comando.Parameters.AddWithValue("@EsResuelto", defecto.EsResuelto);
             comando.Parameters.AddWithValue("@TipoDefectoId", defecto.TipoDefectoId ?? (object)DBNull.Value);
+            comando.Parameters.AddWithValue("@FechaResolucion", defecto.FechaResolucion ?? (object)DBNull.Value);
 
             var resultado = comando.ExecuteScalar();
             return resultado != null && resultado != DBNull.Value ? Convert.ToInt64(resultado) : 0L;
@@ -61,7 +46,6 @@ namespace SistemaMonitoreoProyectos.Repositories
         {
             using var conexion = ConexionDB.ObtenerConexion();
 
-            // Agregamos TipoDefectoId a la actualización
             string query = @"
                 UPDATE RegistrosDefectos 
                 SET DescripcionError = @DescripcionError,
@@ -69,7 +53,8 @@ namespace SistemaMonitoreoProyectos.Repositories
                     FaseDeteccionId = @FaseDeteccionId,
                     TiempoCorreccionMinutos = @TiempoCorreccionMinutos,
                     EsResuelto = @EsResuelto,
-                    TipoDefectoId = @TipoDefectoId
+                    TipoDefectoId = @TipoDefectoId,
+                    FechaResolucion = @FechaResolucion
                 WHERE Id = @Id;";
 
             using var comando = new SqliteCommand(query, conexion);
@@ -80,6 +65,7 @@ namespace SistemaMonitoreoProyectos.Repositories
             comando.Parameters.AddWithValue("@TiempoCorreccionMinutos", defecto.TiempoCorreccionMinutos);
             comando.Parameters.AddWithValue("@EsResuelto", defecto.EsResuelto);
             comando.Parameters.AddWithValue("@TipoDefectoId", defecto.TipoDefectoId ?? (object)DBNull.Value);
+            comando.Parameters.AddWithValue("@FechaResolucion", defecto.FechaResolucion ?? (object)DBNull.Value);
 
             comando.ExecuteNonQuery();
         }
@@ -102,7 +88,8 @@ namespace SistemaMonitoreoProyectos.Repositories
 
             string query = @"
                 SELECT Id, ActividadId, DefectoPadreId, DescripcionError, FaseOrigenId, 
-                       FaseDeteccionId, TiempoCorreccionMinutos, FechaRegistro, EsResuelto, TipoDefectoId
+                       FaseDeteccionId, TiempoCorreccionMinutos, FechaRegistro, EsResuelto, 
+                       TipoDefectoId, FechaResolucion
                 FROM RegistrosDefectos
                 WHERE ActividadId = @ActividadId
                 ORDER BY Id ASC;";
@@ -124,8 +111,8 @@ namespace SistemaMonitoreoProyectos.Repositories
                     TiempoCorreccionMinutos = reader.GetInt64(6),
                     FechaRegistro = reader.GetString(7),
                     EsResuelto = reader.GetInt32(8),
-                    // Recuperamos el campo verificando si es nulo
-                    TipoDefectoId = reader.IsDBNull(9) ? null : reader.GetInt32(9)
+                    TipoDefectoId = reader.IsDBNull(9) ? null : reader.GetInt32(9),
+                    FechaResolucion = reader.IsDBNull(10) ? null : reader.GetString(10)
                 });
             }
 

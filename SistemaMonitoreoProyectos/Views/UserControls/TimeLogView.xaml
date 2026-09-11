@@ -8,58 +8,148 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Encabezado -->
-<Grid Grid.Row="0" Margin="0,0,0,20">
-    <StackPanel HorizontalAlignment="Left">
-        <TextBlock x:Name="TextoRutaTimeLog" Text="/ PROYECTO / TIME LOG" Style="{StaticResource EstiloTextoEtiqueta}" Margin="0,0,0,4"/>
-        <TextBlock Text="Registro de Tiempo" Style="{StaticResource EstiloTextoTituloGrande}"/>
-        <TextBlock Text="Desglose detallado de horas invertidas por fase y actividad." Style="{StaticResource EstiloTextoSubtitulo}" Margin="0,4,0,0"/>
-    </StackPanel>
-</Grid>
+        <!-- 0. ENCABEZADO Y TARJETA DETALLE DE ACTIVIDAD -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,16">
+            <TextBlock x:Name="TextoRutaTimeLog" Text="/ PROYECTO / TIME LOG" Style="{StaticResource EstiloTextoEtiqueta}" Margin="0,0,0,4"/>
+            <TextBlock Text="Registro de Tiempo" Style="{StaticResource EstiloTextoTituloGrande}"/>
 
-        <!-- Tabla DataGrid de Registros de Tiempo -->
-        <Border Grid.Row="1" Style="{StaticResource EstiloTarjetaBase}" Padding="0">
-            <ListView x:Name="ListaRegistrosTiempo" Background="Transparent" BorderThickness="0" Foreground="{StaticResource BrocheTextoPrincipal}">
+            <Border Style="{StaticResource EstiloTarjetaBase}" Margin="0,14,0,0" Padding="16,12">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <TextBlock x:Name="TextoTituloActividad" Text="NOMBRE DE ACTIVIDAD" Foreground="{StaticResource BrocheTextoPrincipal}" FontWeight="Bold" FontSize="16" Margin="0,0,0,4"/>
+                        <TextBlock x:Name="TextoDescripcionActividad" Text="Descripción detallada de la actividad..." Foreground="{StaticResource BrocheTextoSecundario}" FontSize="13" TextWrapping="Wrap"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="20,0,0,0">
+                        <Border Background="#27272A" CornerRadius="6" Padding="10,4" Margin="0,0,0,6" HorizontalAlignment="Right">
+                            <TextBlock x:Name="TextoResponsable" Text="👤 Responsable: --" Foreground="{StaticResource BrocheTextoPrincipal}" FontSize="11" FontWeight="SemiBold"/>
+                        </Border>
+                        <TextBlock x:Name="TextoTiempoEstimado" Text="⏱ Estimado: 0 min" Foreground="{StaticResource BrocheAcentoPrimario}" FontSize="12" FontWeight="Bold" HorizontalAlignment="Right"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </StackPanel>
+
+        <!-- 1. TABLA CON SCROLLBAR Y ESTILOS MODERNOS -->
+        <Border Grid.Row="1" Style="{StaticResource EstiloTarjetaBase}" Padding="0" ClipToBounds="True">
+            <ListView x:Name="ListaRegistrosTiempo" 
+                      Background="Transparent" 
+                      BorderThickness="0" 
+                      Foreground="{StaticResource BrocheTextoPrincipal}"
+                      ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                      ScrollViewer.VerticalScrollBarVisibility="Auto">
+                
+                <ListView.Resources>
+                    <!-- Estilo para Encabezados de Columna -->
+                    <Style TargetType="GridViewColumnHeader">
+                        <Setter Property="Background" Value="#16161A"/>
+                        <Setter Property="Foreground" Value="{StaticResource BrocheTextoSecundario}"/>
+                        <Setter Property="FontWeight" Value="Bold"/>
+                        <Setter Property="FontSize" Value="11"/>
+                        <Setter Property="Padding" Value="14,10"/>
+                        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                        <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                        <Setter Property="BorderBrush" Value="{StaticResource BrocheBordeTarjeta}"/>
+                    </Style>
+
+                    <!-- Estilo para Filas de la Tabla (Hover + Separadores) -->
+                    <Style TargetType="ListViewItem">
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="Foreground" Value="{StaticResource BrocheTextoPrincipal}"/>
+                        <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                        <Setter Property="BorderBrush" Value="#242429"/>
+                        <Setter Property="Padding" Value="0,2"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="ListViewItem">
+                                    <Border x:Name="Bd" 
+                                            Background="{TemplateBinding Background}" 
+                                            BorderBrush="{TemplateBinding BorderBrush}" 
+                                            BorderThickness="{TemplateBinding BorderThickness}" 
+                                            Padding="{TemplateBinding Padding}">
+                                        <GridViewRowPresenter HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="Bd" Property="Background" Value="#25252B"/>
+                                        </Trigger>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter TargetName="Bd" Property="Background" Value="#2A2A33"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+
+                    <!-- ScrollBar Delgado Personalizado -->
+                    <Style TargetType="ScrollBar">
+                        <Setter Property="Width" Value="8"/>
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="ScrollBar">
+                                    <Grid Background="Transparent">
+                                        <Track x:Name="PART_Track" IsDirectionReversed="True">
+                                            <Track.Thumb>
+                                                <Thumb Width="8">
+                                                    <Thumb.Template>
+                                                        <ControlTemplate TargetType="Thumb">
+                                                            <Border x:Name="ThumbBorder" Background="#3F3F46" CornerRadius="4"/>
+                                                            <ControlTemplate.Triggers>
+                                                                <Trigger Property="IsMouseOver" Value="True">
+                                                                    <Setter TargetName="ThumbBorder" Property="Background" Value="{StaticResource BrocheAcentoPrimario}"/>
+                                                                </Trigger>
+                                                            </ControlTemplate.Triggers>
+                                                        </ControlTemplate>
+                                                    </Thumb.Template>
+                                                </Thumb>
+                                            </Track.Thumb>
+                                        </Track>
+                                    </Grid>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </ListView.Resources>
+
                 <ListView.View>
                     <GridView>
-                        <GridViewColumn Header="FECHA/DÍA" Width="140">
+                        <GridViewColumn Header="FECHA / HORA INICIO" Width="210">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding FechaFormatted}" Foreground="{StaticResource BrocheTextoPrincipal}" Margin="8,4"/>
+                                    <TextBlock Text="{Binding FechaFormatted}" Foreground="{StaticResource BrocheTextoPrincipal}" Margin="8,6" VerticalAlignment="Center"/>
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
 
-                        <GridViewColumn Header="FASE" Width="130">
+                        <GridViewColumn Header="FASE" Width="180">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
-                                    <Border Background="#27272A" CornerRadius="6" Padding="8,3" HorizontalAlignment="Left">
+                                    <Border Background="#27272A" CornerRadius="6" Padding="10,4" HorizontalAlignment="Left" VerticalAlignment="Center">
                                         <TextBlock Text="{Binding Fase}" Foreground="{StaticResource BrocheTextoPrincipal}" FontSize="11" FontWeight="Bold"/>
                                     </Border>
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
 
-                        <GridViewColumn Header="ACTIVIDAD" Width="360">
+                        <GridViewColumn Header="DURACIÓN TRAMO" Width="180">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding Descripcion}" Foreground="{StaticResource BrocheTextoPrincipal}" Margin="8,4"/>
+                                    <TextBlock Text="{Binding DuracionFormatted}" Foreground="{StaticResource BrocheTextoPrincipal}" FontWeight="SemiBold" HorizontalAlignment="Right" Margin="8,6" VerticalAlignment="Center"/>
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
 
-                        <GridViewColumn Header="TIEMPO (MIN)" Width="120">
+                        <GridViewColumn Header="ACUMULADO" Width="180">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding MinutosEfectivos}" Foreground="{StaticResource BrocheTextoPrincipal}" HorizontalAlignment="Right" Margin="8,4"/>
-                                </DataTemplate>
-                            </GridViewColumn.CellTemplate>
-                        </GridViewColumn>
-
-                        <GridViewColumn Header="TOTAL" Width="120">
-                            <GridViewColumn.CellTemplate>
-                                <DataTemplate>
-                                    <TextBlock Text="{Binding TotalAcumuladoFormatted}" Foreground="{StaticResource BrocheTextoPrincipal}" FontWeight="Bold" HorizontalAlignment="Right" Margin="8,4"/>
+                                    <TextBlock Text="{Binding TotalAcumuladoFormatted}" Foreground="{StaticResource BrocheAcentoPrimario}" FontWeight="Bold" HorizontalAlignment="Right" Margin="8,6" VerticalAlignment="Center"/>
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
@@ -68,11 +158,15 @@
             </ListView>
         </Border>
 
-        <!-- Pie de Tabla: Total -->
+        <!-- 2. PIE DE TABLA -->
         <Border Grid.Row="2" Style="{StaticResource EstiloTarjetaBase}" Margin="0,10,0,0" Padding="16,12">
             <Grid>
-                <TextBlock Text="Tiempo Total Registrado" Foreground="{StaticResource BrocheTextoPrincipal}" FontWeight="Bold"/>
-                <TextBlock x:Name="TextoTiempoTotalTimeLog" Text="228 min" Foreground="{StaticResource BrocheAcentoPrimario}" FontWeight="Bold" FontSize="16" HorizontalAlignment="Right"/>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="⏱ " FontSize="14" Foreground="{StaticResource BrocheAcentoPrimario}"/>
+                    <TextBlock Text="Tiempo Total Invertido en Esfuerzo Directo" Foreground="{StaticResource BrocheTextoPrincipal}" FontWeight="Bold" VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <TextBlock x:Name="TextoTiempoTotalTimeLog" Text="00:00:00 (0 min)" Foreground="{StaticResource BrocheAcentoPrimario}" FontWeight="Bold" FontSize="16" HorizontalAlignment="Right" VerticalAlignment="Center"/>
             </Grid>
         </Border>
     </Grid>

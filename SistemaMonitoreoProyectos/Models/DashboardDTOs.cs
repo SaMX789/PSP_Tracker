@@ -6,8 +6,7 @@ namespace SistemaMonitoreoProyectos.Models
     {
         public string FechaFormatted { get; set; } = string.Empty;
         public string Fase { get; set; } = string.Empty;
-        public string Descripcion { get; set; } = string.Empty;
-        public int MinutosEfectivos { get; set; }
+        public string DuracionFormatted { get; set; } = string.Empty; // Formato legible mm:ss / hh:mm:ss
         public string TotalAcumuladoFormatted { get; set; } = string.Empty;
     }
 

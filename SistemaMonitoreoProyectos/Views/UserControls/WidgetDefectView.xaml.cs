@@ -23,6 +23,7 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
         private long? _defectoIdActual;
         private long? _defectoPadreId;
         private bool _yaEstaResuelto = false;
+        private string? _fechaResolucionExistente = null;
 
         public WidgetDefectView(long? defectoIdParaCargar = null, long? defectoPadreId = null)
         {
@@ -109,6 +110,7 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
                 _defectoPadreId = defecto.DefectoPadreId;
 
                 _segundosHistoricosPrevios = (int)defecto.TiempoCorreccionMinutos;
+                _fechaResolucionExistente = defecto.FechaResolucion;
 
                 if (defecto.EsResuelto == 1)
                 {
@@ -296,7 +298,6 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
             _timerDefectoUI.Stop();
             var sesion = _sesionRepo.ObtenerSesion();
 
-            // Si el defecto ya estaba resuelto, no se le suma ningún segundo nuevo
             int segundosSesionActual = _yaEstaResuelto ? 0 : (int)(DateTime.Now - _fechaInicioDefecto).TotalSeconds;
             long segundosTotalesAcc = _segundosHistoricosPrevios + segundosSesionActual;
 
@@ -306,10 +307,20 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
 
             long faseOrigen = DesplegableFaseOrigen.SelectedValue != null ? Convert.ToInt64(DesplegableFaseOrigen.SelectedValue) : 1;
             long faseDeteccion = DesplegableFaseDeteccion.SelectedValue != null ? Convert.ToInt64(DesplegableFaseDeteccion.SelectedValue) : 1;
-
             int? tipoSeleccionado = DesplegableTipoDefecto.SelectedValue != null ? Convert.ToInt32(DesplegableTipoDefecto.SelectedValue) : (int?)null;
-            
+
             int estadoFinalResuelto = (_yaEstaResuelto || marcarComoResuelto) ? 1 : 0;
+
+            // NUEVO: Lógica para asignar la FechaResolucion
+            string? fechaResolucionCalculada = null;
+            if (estadoFinalResuelto == 1)
+            {
+                // Si ya estaba resuelto desde antes, conservamos su fecha original.
+                // Si apenas lo estamos resolviendo ahora, le asignamos DateTime.Now
+                fechaResolucionCalculada = (_yaEstaResuelto && !string.IsNullOrEmpty(_fechaResolucionExistente))
+                    ? _fechaResolucionExistente
+                    : DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            }
 
             var registro = new RegistroDefecto
             {
@@ -320,9 +331,12 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
                 FaseOrigenId = faseOrigen,
                 FaseDeteccionId = faseDeteccion,
                 TipoDefectoId = tipoSeleccionado,
-                TiempoCorreccionMinutos = segundosTotalesAcc, // Guarda exactamente el acumulado sin sumar extras si ya estaba listo
-                FechaRegistro = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
-                EsResuelto = estadoFinalResuelto
+                TiempoCorreccionMinutos = segundosTotalesAcc,
+                FechaRegistro = _yaEstaResuelto ? DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") : DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), // Modifica esto si también preservas FechaRegistro original
+                EsResuelto = estadoFinalResuelto,
+
+                // NUEVO: Asignamos al modelo
+                FechaResolucion = fechaResolucionCalculada
             };
 
             if (_defectoIdActual.HasValue && _defectoIdActual.Value > 0)
