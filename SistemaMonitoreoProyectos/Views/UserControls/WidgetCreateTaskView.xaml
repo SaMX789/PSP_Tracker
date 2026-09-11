@@ -8,13 +8,12 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- 0. Encabezado del Widget con Menú de 3 Puntos -->
+        <!-- 0. Encabezado del Widget -->
         <Grid Grid.Row="0" Margin="0,0,0,10">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <Border Width="32" Height="4" Background="{StaticResource BrocheBordeTarjeta}" CornerRadius="2"/>
             </StackPanel>
 
-            <!-- Menú de 3 Puntos a la derecha -->
             <Button x:Name="BotonOpcionesWidget" 
                     Width="26" 
                     Height="20" 
@@ -32,12 +31,11 @@
             </Button>
         </Grid>
 
-        <!-- 1. Formulario de Entrada con ScrollBar Estilizado (6px) -->
+        <!-- 1. Formulario Unificado -->
         <ScrollViewer Grid.Row="1" 
                       VerticalScrollBarVisibility="Auto" 
                       HorizontalScrollBarVisibility="Disabled"
                       Focusable="False">
-            
             <ScrollViewer.Resources>
                 <Style TargetType="ScrollBar">
                     <Setter Property="Width" Value="6"/>
@@ -51,9 +49,7 @@
                                             <Thumb Width="6">
                                                 <Thumb.Template>
                                                     <ControlTemplate TargetType="Thumb">
-                                                        <Border x:Name="ThumbBorder" 
-                                                                Background="{StaticResource BrocheBordeTarjeta}" 
-                                                                CornerRadius="3"/>
+                                                        <Border x:Name="ThumbBorder" Background="{StaticResource BrocheBordeTarjeta}" CornerRadius="3"/>
                                                         <ControlTemplate.Triggers>
                                                             <Trigger Property="IsMouseOver" Value="True">
                                                                 <Setter TargetName="ThumbBorder" Property="Background" Value="{StaticResource BrocheTextoSecundario}"/>
@@ -72,52 +68,147 @@
             </ScrollViewer.Resources>
 
             <StackPanel Margin="2,2,8,2">
-                <!-- Campo: Título de la Actividad -->
+                <!-- Título -->
                 <TextBlock Text="Título de la actividad" Style="{StaticResource EstiloTextoEtiqueta}" Margin="0,0,0,4"/>
                 <TextBox x:Name="TextoTituloActividad" 
                          Style="{StaticResource EstiloCampoTexto}" 
                          Height="36" 
-                         VerticalContentAlignment="Center"
-                         Padding="8,0"
+                         VerticalContentAlignment="Center" 
+                         Padding="8,0" 
                          Margin="0,0,0,12"/>
 
-                <!-- Campo: Descripción (Caja ampliada hacia abajo) -->
+                <!-- Descripción -->
                 <TextBlock Text="Descripción" Style="{StaticResource EstiloTextoEtiqueta}" Margin="0,0,0,4"/>
                 <TextBox x:Name="TextoDescripcionActividad" 
                          Style="{StaticResource EstiloCampoTexto}" 
-                         MinHeight="85" 
-                         MaxHeight="120"
+                         MinHeight="55" 
+                         MaxHeight="80" 
                          TextWrapping="Wrap" 
                          AcceptsReturn="True" 
                          VerticalContentAlignment="Top" 
-                         Padding="8,8"
+                         Padding="8,6" 
                          Margin="0,0,0,12"/>
 
-                <!-- Campo: Responsable -->
+                <!-- Responsable -->
                 <TextBlock Text="Responsable" Style="{StaticResource EstiloTextoEtiqueta}" Margin="0,0,0,4"/>
                 <TextBox x:Name="TextoResponsable" 
                          Style="{StaticResource EstiloCampoTexto}" 
                          Height="36" 
-                         VerticalContentAlignment="Center"
-                         Padding="8,0"
+                         VerticalContentAlignment="Center" 
+                         Padding="8,0" 
                          Margin="0,0,0,12"/>
 
-                <!-- Campo: Tiempo Estimado (Horas) -->
-                <TextBlock Text="Tiempo estimado (horas)" Style="{StaticResource EstiloTextoEtiqueta}" Margin="0,0,0,4"/>
+                <!-- Tiempo Estimado Total (Horas) -->
+                <TextBlock Text="Tiempo estimado total (horas)" Style="{StaticResource EstiloTextoEtiqueta}" Margin="0,0,0,4"/>
                 <TextBox x:Name="TextoTiempoEstimado" 
                          Style="{StaticResource EstiloCampoTexto}" 
                          Height="36" 
-                         Text="0.0" 
-                         VerticalContentAlignment="Center"
-                         Padding="8,0"
-                         Margin="0,0,0,6"/>
+                         Text="1.0" 
+                         VerticalContentAlignment="Center" 
+                         Padding="8,0" 
+                         Margin="0,0,0,14"
+                         GotFocus="TextoTiempoEstimado_GotFocus"
+                         TextChanged="TextoTiempoEstimado_TextChanged"
+                         PreviewTextInput="SoloDecimales_PreviewTextInput"
+                         PreviewKeyDown="SinEspacios_PreviewKeyDown"/>
+
+                <!-- SECCIÓN PLEGABLE DE FASES PSP -->
+                <Expander x:Name="AcordeonPlanPSP" 
+                          Header="📊 ¿Cuánto tiempo crees que te llevará..." 
+                          Foreground="{StaticResource BrocheAcentoPrimario}" 
+                          FontWeight="Bold" 
+                          FontSize="12" 
+                          Margin="0,2,0,10">
+                    <StackPanel Margin="0,10,0,0">
+                        
+                        <!-- ENCABEZADO DE COLUMNAS DE CAMPOS -->
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="6"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="6"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Column="0" Text="Tiempo (h)" Style="{StaticResource EstiloTextoEtiqueta}" FontSize="9" FontWeight="Bold" HorizontalAlignment="Center"/>
+                            <TextBlock Grid.Column="2" Text="Err. Inyect." Style="{StaticResource EstiloTextoEtiqueta}" FontSize="9" FontWeight="Bold" HorizontalAlignment="Center" ToolTip="Errores inyectados estimados"/>
+                            <TextBlock Grid.Column="4" Text="Err. Remov." Style="{StaticResource EstiloTextoEtiqueta}" FontSize="9" FontWeight="Bold" HorizontalAlignment="Center" ToolTip="Errores removidos estimados"/>
+                        </Grid>
+
+                        <!-- LISTA DE FASES CON TÍTULO ARRIBA Y CUADROS DE TEXTO ABAJO -->
+                        <ItemsControl x:Name="ListaFasesPlan">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border BorderBrush="#27272A" BorderThickness="0,0,0,1" Padding="0,4,0,6" Margin="0,0,0,4">
+                                        <StackPanel>
+                                            <!-- Nombre de la fase arriba del grupo de textos -->
+                                            <TextBlock Text="{Binding NombreFaseDisplay}" 
+                                                       Foreground="{StaticResource BrocheTextoPrincipal}" 
+                                                       FontSize="11" 
+                                                       FontWeight="SemiBold" 
+                                                       Margin="0,0,0,4"
+                                                       TextWrapping="Wrap"/>
+
+                                            <!-- Fila con los 3 cuadros de texto -->
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="6"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="6"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+
+                                                <!-- Horas (Acepta decimales) -->
+                                                <TextBox Grid.Column="0" 
+                                                         Text="{Binding TiempoEstimadoHorasTexto, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                                         Style="{StaticResource EstiloCampoTexto}" 
+                                                         Height="26" 
+                                                         Padding="2,0" 
+                                                         FontSize="11" 
+                                                         HorizontalContentAlignment="Center"
+                                                         PreviewTextInput="SoloDecimales_PreviewTextInput"
+                                                         PreviewKeyDown="SinEspacios_PreviewKeyDown"/>
+
+                                                <!-- Errores Inyectados (Habilitado solo si tiempo > 0) -->
+                                                <TextBox Grid.Column="2" 
+                                                         Text="{Binding DefectosInyectadosTexto, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                                         IsEnabled="{Binding PuedeEditarInyectados}"
+                                                         Style="{StaticResource EstiloCampoTexto}" 
+                                                         Height="26" 
+                                                         Padding="2,0" 
+                                                         FontSize="11" 
+                                                         HorizontalContentAlignment="Center"
+                                                         PreviewTextInput="SoloEnteros_PreviewTextInput"
+                                                         PreviewKeyDown="SinEspacios_PreviewKeyDown"/>
+
+                                                <!-- Errores Removidos (Habilitado solo si inyectados > 0) -->
+                                                <TextBox Grid.Column="4" 
+                                                         Text="{Binding DefectosRemovidosTexto, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                                         IsEnabled="{Binding PuedeEditarRemovidos}"
+                                                         Style="{StaticResource EstiloCampoTexto}" 
+                                                         Height="26" 
+                                                         Padding="2,0" 
+                                                         FontSize="11" 
+                                                         HorizontalContentAlignment="Center"
+                                                         PreviewTextInput="SoloEnteros_PreviewTextInput"
+                                                         PreviewKeyDown="SinEspacios_PreviewKeyDown"/>
+                                            </Grid>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Expander>
             </StackPanel>
         </ScrollViewer>
 
-        <!-- 2. Acciones Inferiores -->
+        <!-- 2. Botón Inferior -->
         <StackPanel Grid.Row="2" Margin="0,10,0,0">
             <Button x:Name="BotonSiguiente" 
-                    Content="SIGUIENTE  ➔" 
+                    Content="► CREAR E INICIAR" 
                     Style="{StaticResource EstiloBotonPrimario}" 
                     Height="42" 
                     Margin="0,0,0,10" 
