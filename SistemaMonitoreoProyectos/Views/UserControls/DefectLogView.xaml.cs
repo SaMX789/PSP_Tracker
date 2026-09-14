@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Windows;
 using System.Windows.Controls;
 using SistemaMonitoreoProyectos.Models;
 using SistemaMonitoreoProyectos.Repositories;
@@ -13,6 +14,7 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
         private readonly FaseRepository _faseRepo = new FaseRepository();
         private readonly TipoDefectoRepository _tipoRepo = new TipoDefectoRepository();
         private readonly ActividadRepository _actividadRepo = new ActividadRepository();
+
         public DefectLogView()
         {
             InitializeComponent();
@@ -27,7 +29,6 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
             var actividad = _actividadRepo.ObtenerPorId(actividadId);
             if (actividad != null)
             {
-                // Actualiza la ruta dinámica del encabezado
                 TextoRutaDefectLog.Text = $"/ {actividad.Proyecto.ToUpper()} / DEFECT LOG";
             }
 
@@ -60,13 +61,27 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
                     impactoColor = "#EF4444";
                 }
 
+                // Nombre limpio del tipo sin ID
                 string nombreTipo = def.TipoDefectoId.HasValue && tipos.ContainsKey(def.TipoDefectoId.Value)
-                    ? $"{def.TipoDefectoId.Value} - {tipos[def.TipoDefectoId.Value]}"
+                    ? tipos[def.TipoDefectoId.Value]
                     : "Sin Tipo";
+
+                // Formatear Fechas de Registro y Resolución
+                string fechaRegFormateada = DateTime.TryParse(def.FechaRegistro, out var dtReg)
+                    ? dtReg.ToString("dd/MM/yyyy HH:mm") : def.FechaRegistro;
+
+                string fechaResFormateada = string.IsNullOrEmpty(def.FechaResolucion) ? "--" :
+                    (DateTime.TryParse(def.FechaResolucion, out var dtRes) ? dtRes.ToString("dd/MM/yyyy HH:mm") : def.FechaResolucion);
+
+                // Indentación visual limpia para jerarquía de subdefectos
+                bool esHijo = def.DefectoPadreId.HasValue;
+                Thickness marginJerarquia = esHijo ? new Thickness(16, 4, 8, 4) : new Thickness(8, 6, 8, 6);
 
                 listaDTO.Add(new DefectLogItemDTO
                 {
                     Id = def.Id,
+                    FechaRegistroFormatted = fechaRegFormateada,
+                    FechaResolucionFormatted = fechaResFormateada,
                     DescripcionError = def.DescripcionError,
                     TipoDefectoTexto = nombreTipo,
                     RutaFases = $"{nombreOrigen} ➔ {nombreDeteccion}",
@@ -75,7 +90,8 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
                     TiempoCorreccionFormatted = $"{(int)t.TotalHours:00}:{t.Minutes:00}:{t.Seconds:00}",
                     EstadoTexto = def.EsResuelto == 1 ? "Listo" : "Pendiente",
                     EstadoColor = def.EsResuelto == 1 ? "#10B981" : "#FF4D4D",
-                    EsAnidadoVisibility = def.DefectoPadreId.HasValue ? "Visible" : "Collapsed"
+                    EsAnidadoVisibility = esHijo ? "Visible" : "Collapsed",
+                    MarginJerarquia = marginJerarquia
                 });
             }
 

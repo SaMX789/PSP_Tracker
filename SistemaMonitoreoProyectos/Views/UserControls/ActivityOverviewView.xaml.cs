@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using SistemaMonitoreoProyectos.Models;
 using SistemaMonitoreoProyectos.Repositories;
@@ -15,6 +17,7 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
         private readonly RegistroDefectoRepository _defectoRepo = new RegistroDefectoRepository();
         private readonly InterrupcionRepository _interrupcionRepo = new InterrupcionRepository();
         private readonly FaseRepository _faseRepo = new FaseRepository();
+        private readonly PlanFaseRepository _planFaseRepo = new PlanFaseRepository();
 
         public ActivityOverviewView()
         {
@@ -55,22 +58,21 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
             double realHoras = Math.Round(realSegundos / 3600.0, 1);
 
             TextoTiempoEstimadoHoras.Text = estHoras.ToString("0.0");
-            TextoTiempoEstimadoMinutos.Text = $"({estMinutos} min)";
+            TextoTiempoEstimadoMinutos.Text = $"({FaseDTO.FormatearTiempo(estMinutos)})";
 
             TextoTiempoRealHoras.Text = realHoras.ToString("0.0");
-            TextoTiempoRealMinutos.Text = $"({realMinutos} min)";
+            TextoTiempoRealMinutos.Text = $"({FaseDTO.FormatearTiempo(realMinutos)})";
 
             double pctConsumo = estMinutos > 0 ? ((double)realMinutos / estMinutos) * 100 : 0;
             BarraConsumoTiempo.Value = Math.Min(pctConsumo, 100);
             TextoPorcentajeConsumo.Text = $"{pctConsumo:0.0}%";
 
-            // 2. Cálculo y Reglas Semánticas de Desviación PSP
+            // 2. Desviación
             double desviacion = estMinutos > 0 ? ((double)(realMinutos - estMinutos) / estMinutos) * 100 : 0;
             TextoPorcentajeDesviacion.Text = $"{(desviacion >= 0 ? "+" : "")}{desviacion:0.0}%";
 
             if (realMinutos == 0)
             {
-                // CASO ESPECIAL: Sin avance registrado todavía
                 TextoPorcentajeDesviacion.Text = "0,0%";
                 TextoPorcentajeDesviacion.Foreground = (Brush)new BrushConverter().ConvertFrom("#A1A1AA")!;
                 BadgeEstadoDesviacion.Background = (Brush)new BrushConverter().ConvertFrom("#27272A")!;
@@ -81,7 +83,6 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
             }
             else if (Math.Abs(desviacion) <= 10)
             {
-                // ESTIMACIÓN PRECISA (±10%)
                 TextoPorcentajeDesviacion.Foreground = (Brush)new BrushConverter().ConvertFrom("#60A5FA")!;
                 BadgeEstadoDesviacion.Background = (Brush)new BrushConverter().ConvertFrom("#202B42")!;
                 IconoEstadoDesviacion.Foreground = (Brush)new BrushConverter().ConvertFrom("#60A5FA")!;
@@ -91,7 +92,6 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
             }
             else if (desviacion > 10 && desviacion <= 50)
             {
-                // DESVIACIÓN MODERADA (+10% a +50%)
                 TextoPorcentajeDesviacion.Foreground = (Brush)new BrushConverter().ConvertFrom("#F59E0B")!;
                 BadgeEstadoDesviacion.Background = (Brush)new BrushConverter().ConvertFrom("#3B2E1E")!;
                 IconoEstadoDesviacion.Foreground = (Brush)new BrushConverter().ConvertFrom("#F59E0B")!;
@@ -101,7 +101,6 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
             }
             else if (desviacion > 50)
             {
-                // DESVIACIÓN CRÍTICA (> +50%)
                 TextoPorcentajeDesviacion.Foreground = (Brush)new BrushConverter().ConvertFrom("#FF6B6B")!;
                 BadgeEstadoDesviacion.Background = (Brush)new BrushConverter().ConvertFrom("#3B2020")!;
                 IconoEstadoDesviacion.Foreground = (Brush)new BrushConverter().ConvertFrom("#FF6B6B")!;
@@ -109,9 +108,8 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
                 IconoEstadoDesviacion.Text = "\uE814 ";
                 TextoEstadoDesviacion.Text = "Desviación crítica (> +50%)";
             }
-            else // desviacion < -10% con realMinutos > 0
+            else
             {
-                // SOBREESTIMACIÓN (> 10% antes de tiempo)
                 TextoPorcentajeDesviacion.Foreground = (Brush)new BrushConverter().ConvertFrom("#10B981")!;
                 BadgeEstadoDesviacion.Background = (Brush)new BrushConverter().ConvertFrom("#1C2B20")!;
                 IconoEstadoDesviacion.Foreground = (Brush)new BrushConverter().ConvertFrom("#10B981")!;
@@ -127,12 +125,12 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
             double pctRetrabajo = realMinutos > 0 ? ((double)minutosRetrabajo / realMinutos) * 100 : 0;
 
             TextoPorcentajeRetrabajo.Text = $"{pctRetrabajo:0.0}%";
-            TextoTiempoRetrabajo.Text = $"Invertido: {minutosRetrabajo} min";
+            TextoTiempoRetrabajo.Text = $"Invertido: {FaseDTO.FormatearTiempo(minutosRetrabajo)}";
 
             int segInterrupcion = _interrupcionRepo.ObtenerSegundosInterrupcionPorActividad(actividadId);
             int minInterrupcion = (int)Math.Round(segInterrupcion / 60.0);
-            TextoTotalInterrupciones.Text = $"{minInterrupcion} min";
-            TextoTiempoPerdidoInterrupciones.Text = $"Perdido: {minInterrupcion} min";
+            TextoTotalInterrupciones.Text = FaseDTO.FormatearTiempo(minInterrupcion);
+            TextoTiempoPerdidoInterrupciones.Text = $"Perdido";
 
             // 4. Calidad y Defectos
             int totalDefectos = defectos.Count;
@@ -150,13 +148,16 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
             double mttrMinutos = totalDefectos > 0 ? (segundosRetrabajo / 60.0) / totalDefectos : 0;
             TextoPromedioCorreccionMTTR.Text = $"{mttrMinutos:0.0} min";
 
-            // 5. Cargar Distribución por Fase (SIEMPRE EJECUTADO)
+            // 5. Cargar tarjetas side-by-side
             CargarDistribucionFasesDinamica(actividadId, realSegundos);
         }
 
         private void CargarDistribucionFasesDinamica(int actividadId, int totalSegundosActividad)
         {
             var todasLasFases = _faseRepo.ObtenerTodas();
+            var planesDict = _planFaseRepo.ObtenerPorActividad(actividadId).ToDictionary(p => p.FaseId, p => p.TiempoEstimadoMinutos);
+            int totalMinutosEstimadosActividad = planesDict.Values.Sum();
+
             var macroFasesDTO = new List<MacroFaseDTO>();
 
             var coloresMacroFases = new Dictionary<string, string>
@@ -174,14 +175,19 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
             {
                 string nombreMacroFase = grupo.Key;
                 int segundosMacroFase = 0;
+                int minutosEstimadosMacroFase = 0;
                 var listaFasesHijas = new List<FaseDTO>();
 
                 foreach (var fase in grupo)
                 {
                     int segFase = _esfuerzoRepo.ObtenerSegundosPorFase(actividadId, fase.Id);
+                    int minEstFase = planesDict.ContainsKey(fase.Id) ? planesDict[fase.Id] : 0;
+
                     segundosMacroFase += segFase;
+                    minutosEstimadosMacroFase += minEstFase;
 
                     double pctFase = totalSegundosActividad > 0 ? ((double)segFase / totalSegundosActividad) * 100 : 0;
+                    double pctEstFase = totalMinutosEstimadosActividad > 0 ? ((double)minEstFase / totalMinutosEstimadosActividad) * 100 : 0;
 
                     listaFasesHijas.Add(new FaseDTO
                     {
@@ -189,25 +195,93 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
                         Nombre = fase.Nombre,
                         MacroFase = fase.MacroFase,
                         Segundos = segFase,
-                        Porcentaje = pctFase
+                        MinutosEstimados = minEstFase,
+                        Porcentaje = pctFase,
+                        PorcentajeEstimado = pctEstFase
                     });
                 }
 
                 double pctMacroFase = totalSegundosActividad > 0 ? ((double)segundosMacroFase / totalSegundosActividad) * 100 : 0;
+                double pctEstMacroFase = totalMinutosEstimadosActividad > 0 ? ((double)minutosEstimadosMacroFase / totalMinutosEstimadosActividad) * 100 : 0;
                 string colorHex = coloresMacroFases.ContainsKey(nombreMacroFase) ? coloresMacroFases[nombreMacroFase] : "#9EA8FF";
 
                 macroFasesDTO.Add(new MacroFaseDTO
                 {
                     Nombre = nombreMacroFase,
                     Segundos = segundosMacroFase,
+                    MinutosEstimados = minutosEstimadosMacroFase,
                     Porcentaje = pctMacroFase,
+                    PorcentajeEstimado = pctEstMacroFase,
                     ColorHex = colorHex,
                     FasesHijas = listaFasesHijas
                 });
             }
 
-            ListaMacroFases.ItemsSource = macroFasesDTO;
-            TextoTotalRegistradoFases.Text = $"{totalSegundosActividad / 60} min";
+            ListaMacroFasesPlan.ItemsSource = macroFasesDTO;
+            ListaMacroFasesReal.ItemsSource = macroFasesDTO;
+
+            TextoTotalEstimadoFases.Text = FaseDTO.FormatearTiempo(totalMinutosEstimadosActividad);
+            TextoTotalRegistradoFases.Text = FaseDTO.FormatearTiempo(totalSegundosActividad / 60);
         }
+
+        #region EVENTOS HOVER INTERACTIVO (ESTIMADO vs REAL)
+        private void TarjetaEstimado_MouseEnter(object sender, MouseEventArgs e)
+        {
+            var brocheAcentoAzul = (Brush)new BrushConverter().ConvertFrom("#60A5FA")!;
+
+            // Ilumina tarjeta Estimado y Plan
+            TarjetaEstimado.BorderBrush = brocheAcentoAzul;
+            TarjetaEstimado.BorderThickness = new Thickness(2);
+
+            TarjetaPlanEstimado.BorderBrush = brocheAcentoAzul;
+            TarjetaPlanEstimado.BorderThickness = new Thickness(2);
+
+            // Atenúa la tarjeta Real para crear contraste
+            TarjetaDistribucionReal.Opacity = 0.35;
+        }
+
+        private void TarjetaEstimado_MouseLeave(object sender, MouseEventArgs e)
+        {
+            var brocheBordeOriginal = (Brush)FindResource("BrocheBordeTarjeta");
+
+            // Restaura
+            TarjetaEstimado.BorderBrush = brocheBordeOriginal;
+            TarjetaEstimado.BorderThickness = new Thickness(1);
+
+            TarjetaPlanEstimado.BorderBrush = brocheBordeOriginal;
+            TarjetaPlanEstimado.BorderThickness = new Thickness(1);
+
+            TarjetaDistribucionReal.Opacity = 1.0;
+        }
+
+        private void TarjetaReal_MouseEnter(object sender, MouseEventArgs e)
+        {
+            var brocheAcentoLavanda = (Brush)FindResource("BrocheAcentoPrimario");
+
+            // Ilumina tarjeta Real y Distribución Real
+            TarjetaReal.BorderBrush = brocheAcentoLavanda;
+            TarjetaReal.BorderThickness = new Thickness(2);
+
+            TarjetaDistribucionReal.BorderBrush = brocheAcentoLavanda;
+            TarjetaDistribucionReal.BorderThickness = new Thickness(2);
+
+            // Atenúa la tarjeta Plan para crear contraste
+            TarjetaPlanEstimado.Opacity = 0.35;
+        }
+
+        private void TarjetaReal_MouseLeave(object sender, MouseEventArgs e)
+        {
+            var brocheBordeOriginal = (Brush)FindResource("BrocheBordeTarjeta");
+
+            // Restaura
+            TarjetaReal.BorderBrush = brocheBordeOriginal;
+            TarjetaReal.BorderThickness = new Thickness(1);
+
+            TarjetaDistribucionReal.BorderBrush = brocheBordeOriginal;
+            TarjetaDistribucionReal.BorderThickness = new Thickness(1);
+
+            TarjetaPlanEstimado.Opacity = 1.0;
+        }
+        #endregion
     }
 }
