@@ -1,15 +1,25 @@
-﻿using SistemaMonitoreoProyectos.Models;
+﻿using System;
+using System.Runtime.InteropServices;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Interop;
+using System.Windows.Media;
+using SistemaMonitoreoProyectos.Models;
 using SistemaMonitoreoProyectos.Repositories;
 using SistemaMonitoreoProyectos.Views;
 using SistemaMonitoreoProyectos.Views.UserControls;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Media;
 
 namespace SistemaMonitoreoProyectos
 {
     public partial class MainWindow : Window
     {
+        // Importación de API de Windows para forzar el título en Modo Oscuro Nativo
+        [DllImport("dwmapi.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
+
+        private const int DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1 = 19;
+        private const int DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
+
         private readonly ActividadRepository _actividadRepo = new ActividadRepository();
         private int _actividadSeleccionadaId = 0;
         private string _tabActual = "Overview";
@@ -17,11 +27,23 @@ namespace SistemaMonitoreoProyectos
         public MainWindow()
         {
             InitializeComponent();
+            SourceInitialized += MainWindow_SourceInitialized;
             Loaded += (s, e) => CargarListaProyectos();
 
             BotonNavegarOverview.Click += (s, e) => CambiarTab("Overview");
             BotonNavegarTimeLog.Click += (s, e) => CambiarTab("TimeLog");
             BotonNavegarDefectLog.Click += (s, e) => CambiarTab("DefectLog");
+        }
+
+        private void MainWindow_SourceInitialized(object? sender, EventArgs e)
+        {
+            // Activa la barra de título oscura nativa manteniendo los botones de Windows y el resize normal
+            var helper = new WindowInteropHelper(this);
+            int darkMode = 1; // 1 = True
+            if (DwmSetWindowAttribute(helper.Handle, DWMWA_USE_IMMERSIVE_DARK_MODE, ref darkMode, sizeof(int)) != 0)
+            {
+                DwmSetWindowAttribute(helper.Handle, DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1, ref darkMode, sizeof(int));
+            }
         }
 
         public void CargarListaProyectos()
@@ -52,7 +74,7 @@ namespace SistemaMonitoreoProyectos
 
                 var icon = new TextBlock
                 {
-                    Text = act.Estado == 1 ? "\uE73E " : "\uE943 ",
+                    Text = act.Estado == 1 ? "\uE73E " : "\uE916 ",
                     FontFamily = new FontFamily("Segoe MDL2 Assets"),
                     FontSize = 14,
                     Foreground = (Brush)FindResource("BrocheAcentoPrimario"),
@@ -118,6 +140,7 @@ namespace SistemaMonitoreoProyectos
         {
             WidgetWindow nuevoWidget = new WidgetWindow();
             nuevoWidget.Show();
+            Close();
         }
     }
 }

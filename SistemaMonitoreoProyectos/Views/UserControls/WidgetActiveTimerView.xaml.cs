@@ -548,6 +548,33 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
             _fechaInicioTramo = null;
         }
         #endregion
+        private void MenuItemGuardarEIrAPanel_Click(object sender, RoutedEventArgs e)
+        {
+            _timerRelojUI.Stop();
+            GuardarYLiquidarFaseActual(pausarCronometro: true);
+
+            // Abre el Dashboard principal
+            MainWindow mainWindow = new MainWindow();
+            mainWindow.Show();
+
+            // Cierra la ventana del Widget
+            if (Window.GetWindow(this) is WidgetWindow widgetWindow)
+            {
+                widgetWindow.Close();
+            }
+        }
+
+        private void MenuItemGuardarYCrearActividad_Click(object sender, RoutedEventArgs e)
+        {
+            _timerRelojUI.Stop();
+            GuardarYLiquidarFaseActual(pausarCronometro: true);
+
+            // Carga la vista de creación de tareas dentro del Widget
+            if (Window.GetWindow(this) is WidgetWindow widgetWindow)
+            {
+                widgetWindow.CargarVistaCrearTarea();
+            }
+        }
     }
 
     public class FaseItemView
