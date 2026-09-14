@@ -37,7 +37,6 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
             _timerRelojUI.Tick += TimerRelojUI_Tick;
 
             Loaded += WidgetActiveTimerView_Loaded;
-            // Se asocia el evento después de que cargue la vista inicial
             DesplegableFase.SelectionChanged += DesplegableFase_SelectionChanged;
         }
 
@@ -136,20 +135,31 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
         {
             _isCargandoFases = true;
             var sesion = _sesionRepo.ObtenerSesion();
-            var todasLasFases = _faseRepo.ObtenerTodas();
-            List<int> fasesCompletadas = new List<int>();
+            var todasLasFases = _faseRepo.ObtenerTodas().OrderBy(f => f.Orden).ToList();
 
+            var faseActualObj = todasLasFases.FirstOrDefault(f => f.Id == faseActualId);
+            int ordenActual = faseActualObj?.Orden ?? 1;
+
+            bool esActividadTerminada = false;
             if (sesion.ActividadId.HasValue)
             {
-                fasesCompletadas = _registroRepo.ObtenerFasesCompletadasPorActividad(sesion.ActividadId.Value);
+                var actividadRepo = new ActividadRepository();
+                var act = actividadRepo.ObtenerPorId(sesion.ActividadId.Value);
+                if (act != null && act.Estado == 1)
+                {
+                    esActividadTerminada = true;
+                }
             }
 
+            // CORRECCIÓN CLAVE: Una fase SOLO se marca como completada si su Orden
+            // es menor al Orden de la fase actual (fue terminada previamente)
+            // o si la actividad entera está completada.
             _listaFasesUI = todasLasFases.Select(f => new FaseItemView
             {
                 Id = f.Id,
                 Nombre = f.Nombre,
                 Orden = f.Orden,
-                EsCompletada = fasesCompletadas.Contains(f.Id)
+                EsCompletada = esActividadTerminada || (f.Orden < ordenActual)
             }).ToList();
 
             DesplegableFase.ItemsSource = _listaFasesUI;
@@ -182,9 +192,11 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
             sesion.MinutosAcumulados = 0;
             _sesionRepo.GuardarOSustituirSesion(sesion);
 
+            CargarDesplegableFases(nuevaFaseId);
+
             BotonIniciarReloj.Content = "► INICIAR";
             BotonPausarReloj.Content = "❚❚ PAUSAR";
-            ConfigurarBotonPausar(esPausar: true, habilitado: false); // Bloqueado hasta que se inicie
+            ConfigurarBotonPausar(esPausar: true, habilitado: false);
 
             ActualizarRelojPantalla();
         }
@@ -208,7 +220,7 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
                 BotonIniciarReloj.Content = "⏹ TERMINAR FASE";
                 ConfigurarBotonPausar(esPausar: true, habilitado: true);
             }
-            else
+            else // "⏹ TERMINAR FASE"
             {
                 _timerRelojUI.Stop();
                 GuardarYLiquidarFaseActual(pausarCronometro: true);
@@ -217,7 +229,7 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
                 int indiceActual = _listaFasesUI.FindIndex(f => f.Id == faseActualId);
                 int siguienteFaseId = faseActualId;
 
-                // Avanzar a la siguiente fase
+                // Avanzar a la siguiente fase de la secuencia PSP
                 if (indiceActual >= 0 && indiceActual < _listaFasesUI.Count - 1)
                 {
                     siguienteFaseId = _listaFasesUI[indiceActual + 1].Id;
@@ -256,7 +268,7 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
                 _sesionRepo.GuardarOSustituirSesion(sesion);
 
                 BotonIniciarReloj.Content = "⏹ TERMINAR FASE";
-                ConfigurarBotonPausar(esPausar: false, habilitado: true); // Cambia a REANUDAR
+                ConfigurarBotonPausar(esPausar: false, habilitado: true);
             }
             else // REANUDAR
             {
@@ -278,8 +290,6 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
                 _fechaInicioTramo = DateTime.Now;
                 sesion.EstadoCronometro = 1;
                 sesion.FechaInicioSesion = _fechaInicioTramo;
-
-                // [REPARACIÓN CRUCIAL 1]: Reiniciamos esto a 0 para que no descarte registros en caso de fallo crítico
                 sesion.MinutosAcumulados = 0;
                 sesion.UltimaActualizacion = DateTime.Now;
 
@@ -287,7 +297,7 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
                 _timerRelojUI.Start();
 
                 BotonIniciarReloj.Content = "⏹ TERMINAR FASE";
-                ConfigurarBotonPausar(esPausar: true, habilitado: true); // Cambia a PAUSAR
+                ConfigurarBotonPausar(esPausar: true, habilitado: true);
             }
 
             ActualizarRelojPantalla();
@@ -325,7 +335,6 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
             var sesion = _sesionRepo.ObtenerSesion();
             if (!sesion.ActividadId.HasValue || !sesion.FaseActualId.HasValue) return 0;
 
-            // 1. Guardar el tramo en la tabla permanente de RegistrosEsfuerzo
             var nuevoRegistro = new RegistroEsfuerzo
             {
                 ActividadId = sesion.ActividadId.Value,
@@ -337,15 +346,12 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
 
             long idGenerado = _registroRepo.Agregar(nuevoRegistro);
 
-            // 2. REPARACIÓN CLAVE: Limpiar EstadoSesion en SQLite inmediatamente
-            // para que no quede residuo de EstadoCronometro=1 o MinutosAcumulados>0
             sesion.EstadoCronometro = 0;
             sesion.FechaInicioSesion = null;
             sesion.MinutosAcumulados = 0;
             sesion.UltimaActualizacion = DateTime.Now;
             _sesionRepo.GuardarOSustituirSesion(sesion);
 
-            // 3. Sincronizar acumulados históricos de la actividad
             _segundosHistoricosOtros = _registroRepo.ObtenerMinutosTotalesPorActividad(sesion.ActividadId.Value);
 
             return idGenerado;
@@ -365,7 +371,6 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
 
             if (TextoRelojCronometro != null)
             {
-                // [REPARACIÓN CRUCIAL 3]: Formateo seguro para más de 24 horas acumuladas de proyecto
                 TextoRelojCronometro.Text = $"{(int)tiempoTotal.TotalHours:00}:{tiempoTotal.Minutes:00}:{tiempoTotal.Seconds:00}";
             }
         }
@@ -407,6 +412,7 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
                 widgetWindow.CargarVistaListaTareas();
             }
         }
+
         private void MenuItemFinalizarActividadWidget_Click(object sender, RoutedEventArgs e)
         {
             var sesion = _sesionRepo.ObtenerSesion();
