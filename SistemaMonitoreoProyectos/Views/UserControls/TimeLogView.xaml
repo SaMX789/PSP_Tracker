@@ -42,7 +42,8 @@
                       BorderThickness="0" 
                       Foreground="{StaticResource BrocheTextoPrincipal}"
                       ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                      ScrollViewer.VerticalScrollBarVisibility="Auto">
+                      ScrollViewer.VerticalScrollBarVisibility="Auto"
+                      SizeChanged="ListaRegistrosTiempo_SizeChanged">
                 
                 <ListView.Resources>
                     <!-- Estilo para Encabezados de Columna -->
@@ -57,7 +58,7 @@
                         <Setter Property="BorderBrush" Value="{StaticResource BrocheBordeTarjeta}"/>
                     </Style>
 
-                    <!-- Estilo para Filas de la Tabla (Hover + Separadores) -->
+                    <!-- Estilo para Filas de la Tabla -->
                     <Style TargetType="ListViewItem">
                         <Setter Property="Background" Value="Transparent"/>
                         <Setter Property="Foreground" Value="{StaticResource BrocheTextoPrincipal}"/>
@@ -120,6 +121,7 @@
 
                 <ListView.View>
                     <GridView>
+                        <!-- Aumentamos los anchos de las columnas para cubrir el espacio vacío -->
                         <GridViewColumn Header="FECHA / HORA INICIO" Width="210">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
@@ -128,7 +130,7 @@
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
 
-                        <GridViewColumn Header="FASE" Width="180">
+                        <GridViewColumn Header="FASE" Width="200">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
                                     <Border Background="#27272A" CornerRadius="6" Padding="10,4" HorizontalAlignment="Left" VerticalAlignment="Center">
@@ -146,7 +148,16 @@
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
 
-                        <GridViewColumn Header="ACUMULADO" Width="180">
+                        <GridViewColumn Header="INTERRUPCIONES" Width="160">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding InterrupcionesFormatted}" Foreground="{StaticResource BrocheTextoSecundario}" HorizontalAlignment="Center" Margin="8,6" VerticalAlignment="Center"/>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+
+                        <!-- La última columna se le da un ancho mayor para intentar absorber el remanente -->
+                        <GridViewColumn Header="ACUMULADO" Width="210">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding TotalAcumuladoFormatted}" Foreground="{StaticResource BrocheAcentoPrimario}" FontWeight="Bold" HorizontalAlignment="Right" Margin="8,6" VerticalAlignment="Center"/>

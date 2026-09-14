@@ -5,7 +5,8 @@
         Height="800" Width="1280"
         MinHeight="720" MinWidth="1024"
         Background="{StaticResource BrocheFondoVentana}"
-        WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="CenterScreen"
+        WindowState="Maximized">
     <Grid>
         <Grid.ColumnDefinitions>
             <!-- Panel Izquierdo: Lista de Proyectos/Actividades -->

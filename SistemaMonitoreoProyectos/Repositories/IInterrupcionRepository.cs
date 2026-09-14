@@ -1,4 +1,5 @@
 ﻿using SistemaMonitoreoProyectos.Models;
+using System.Collections.Generic;
 
 namespace SistemaMonitoreoProyectos.Repositories
 {
@@ -6,5 +7,6 @@ namespace SistemaMonitoreoProyectos.Repositories
     {
         void Agregar(Interrupcion interrupcion);
         int ObtenerSegundosInterrupcionPorActividad(int actividadId);
+        Dictionary<int, int> ObtenerConteoInterrupcionesPorActividad(int actividadId);
     }
 }
