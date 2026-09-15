@@ -1,4 +1,5 @@
-﻿using SistemaMonitoreoProyectos.Models;
+﻿using SistemaMonitoreoProyectos.Data;
+using SistemaMonitoreoProyectos.Models;
 using SistemaMonitoreoProyectos.Repositories;
 using System;
 using System.Collections.Generic;
@@ -21,7 +22,12 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
         private DateTime? _fechaInicioTramo;
         private bool _isCargandoFases = false;
         private long _ultimoRegistroEsfuerzoId = 0;
+
+        // CONTROL DE INTERRUPCIÓN EN TIEMPO REAL
         private DateTime? _inicioInterrupcion;
+        private long? _interrupcionIdActual = null;
+        private bool _isPausado = false;
+
         private readonly IInterrupcionRepository _interrupcionRepo = new InterrupcionRepository();
         private readonly IRegistroDefectoRepository _defectoRepo = new RegistroDefectoRepository();
         private List<FaseItemView> _listaFasesUI = new List<FaseItemView>();
@@ -104,6 +110,7 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
             if (sesion.EstadoCronometro == 1 && sesion.FechaInicioSesion.HasValue)
             {
                 _fechaInicioTramo = sesion.FechaInicioSesion.Value;
+                _isPausado = false;
                 BotonIniciarReloj.Content = "⏹ TERMINAR FASE";
                 ConfigurarBotonPausar(esPausar: true, habilitado: true);
 
@@ -151,9 +158,6 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
                 }
             }
 
-            // CORRECCIÓN CLAVE: Una fase SOLO se marca como completada si su Orden
-            // es menor al Orden de la fase actual (fue terminada previamente)
-            // o si la actividad entera está completada.
             _listaFasesUI = todasLasFases.Select(f => new FaseItemView
             {
                 Id = f.Id,
@@ -177,6 +181,8 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
             var sesion = _sesionRepo.ObtenerSesion();
 
             if (sesion.FaseActualId == nuevaFaseId) return;
+
+            FinalizarPausaSiExiste();
 
             if (_fechaInicioTramo.HasValue || sesion.MinutosAcumulados > 0)
             {
@@ -206,9 +212,13 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
             var sesion = _sesionRepo.ObtenerSesion();
             string textoBoton = BotonIniciarReloj.Content.ToString() ?? "";
 
+            FinalizarPausaSiExiste();
+
             if (textoBoton.Contains("INICIAR"))
             {
                 _fechaInicioTramo = DateTime.Now;
+                _isPausado = false;
+
                 sesion.EstadoCronometro = 1;
                 sesion.FechaInicioSesion = _fechaInicioTramo;
                 sesion.MinutosAcumulados = 0;
@@ -229,7 +239,6 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
                 int indiceActual = _listaFasesUI.FindIndex(f => f.Id == faseActualId);
                 int siguienteFaseId = faseActualId;
 
-                // Avanzar a la siguiente fase de la secuencia PSP
                 if (indiceActual >= 0 && indiceActual < _listaFasesUI.Count - 1)
                 {
                     siguienteFaseId = _listaFasesUI[indiceActual + 1].Id;
@@ -258,34 +267,37 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
             if (textoBoton.Contains("PAUSAR"))
             {
                 _inicioInterrupcion = DateTime.Now;
-                _timerRelojUI.Stop();
 
+                // 1. Guardar y liquidar el esfuerzo trabajado hasta este momento
                 _ultimoRegistroEsfuerzoId = GuardarYLiquidarFaseActual(pausarCronometro: true);
+
+                // 2. Insertar inmediatamente el registro borrador de Interrupción en SQLite
+                if (_ultimoRegistroEsfuerzoId > 0)
+                {
+                    using var con = ConexionDB.ObtenerConexion();
+                    using var cmd = con.CreateCommand();
+                    cmd.CommandText = "INSERT INTO Interrupciones (RegistroEsfuerzoId, DuracionMinutos, FechaHora) VALUES (@regId, 1, @fecha); SELECT last_insert_rowid();";
+                    cmd.Parameters.AddWithValue("@regId", _ultimoRegistroEsfuerzoId);
+                    cmd.Parameters.AddWithValue("@fecha", _inicioInterrupcion.Value.ToString("yyyy-MM-dd HH:mm:ss"));
+                    _interrupcionIdActual = (long)cmd.ExecuteScalar()!;
+                }
+
+                _isPausado = true;
 
                 sesion.EstadoCronometro = 0;
                 sesion.FechaInicioSesion = null;
                 sesion.UltimaActualizacion = DateTime.Now;
                 _sesionRepo.GuardarOSustituirSesion(sesion);
 
+                // Mantenemos el temporizador corriendo para actualizar la interrupción en BD segundo a segundo
+                _timerRelojUI.Start();
+
                 BotonIniciarReloj.Content = "⏹ TERMINAR FASE";
                 ConfigurarBotonPausar(esPausar: false, habilitado: true);
             }
             else // REANUDAR
             {
-                if (_inicioInterrupcion.HasValue && _ultimoRegistroEsfuerzoId > 0)
-                {
-                    int segundosInterrupcion = (int)(DateTime.Now - _inicioInterrupcion.Value).TotalSeconds;
-                    if (segundosInterrupcion > 0)
-                    {
-                        _interrupcionRepo.Agregar(new Interrupcion
-                        {
-                            RegistroEsfuerzoId = (int)_ultimoRegistroEsfuerzoId,
-                            DuracionMinutos = segundosInterrupcion,
-                            FechaHora = DateTime.Now
-                        });
-                    }
-                    _inicioInterrupcion = null;
-                }
+                FinalizarPausaSiExiste();
 
                 _fechaInicioTramo = DateTime.Now;
                 sesion.EstadoCronometro = 1;
@@ -305,8 +317,26 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
 
         private void TimerRelojUI_Tick(object? sender, EventArgs e)
         {
-            if (_fechaInicioTramo.HasValue)
+            if (_isPausado)
             {
+                // SI ESTÁ PAUSADO: Auto-guardar los segundos de interrupción a la BD en cada tick
+                if (_inicioInterrupcion.HasValue && _interrupcionIdActual.HasValue)
+                {
+                    int segsPausa = (int)(DateTime.Now - _inicioInterrupcion.Value).TotalSeconds;
+                    if (segsPausa > 0)
+                    {
+                        using var con = ConexionDB.ObtenerConexion();
+                        using var cmd = con.CreateCommand();
+                        cmd.CommandText = "UPDATE Interrupciones SET DuracionMinutos = @duracion WHERE Id = @id;";
+                        cmd.Parameters.AddWithValue("@duracion", segsPausa);
+                        cmd.Parameters.AddWithValue("@id", _interrupcionIdActual.Value);
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+            }
+            else if (_fechaInicioTramo.HasValue)
+            {
+                // SI ESTÁ CORRIENDO: Auto-guardar el progreso de la sesión
                 int segundosTramo = (int)(DateTime.Now - _fechaInicioTramo.Value).TotalSeconds;
                 var sesion = _sesionRepo.ObtenerSesion();
 
@@ -317,7 +347,29 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
                     _sesionRepo.GuardarOSustituirSesion(sesion);
                 }
             }
+
             ActualizarRelojPantalla();
+        }
+
+        private void FinalizarPausaSiExiste()
+        {
+            if (_isPausado && _inicioInterrupcion.HasValue && _interrupcionIdActual.HasValue)
+            {
+                int segsPausa = (int)(DateTime.Now - _inicioInterrupcion.Value).TotalSeconds;
+                if (segsPausa > 0)
+                {
+                    using var con = ConexionDB.ObtenerConexion();
+                    using var cmd = con.CreateCommand();
+                    cmd.CommandText = "UPDATE Interrupciones SET DuracionMinutos = @duracion WHERE Id = @id;";
+                    cmd.Parameters.AddWithValue("@duracion", segsPausa);
+                    cmd.Parameters.AddWithValue("@id", _interrupcionIdActual.Value);
+                    cmd.ExecuteNonQuery();
+                }
+            }
+
+            _isPausado = false;
+            _inicioInterrupcion = null;
+            _interrupcionIdActual = null;
         }
 
         private long GuardarYLiquidarFaseActual(bool pausarCronometro)
@@ -361,7 +413,7 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
         {
             int segundosSesionActual = 0;
 
-            if (_fechaInicioTramo.HasValue)
+            if (!_isPausado && _fechaInicioTramo.HasValue)
             {
                 segundosSesionActual = (int)(DateTime.Now - _fechaInicioTramo.Value).TotalSeconds;
             }
@@ -394,6 +446,7 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
         private void MenuItemGuardarYSalir_Click(object sender, RoutedEventArgs e)
         {
             _timerRelojUI.Stop();
+            FinalizarPausaSiExiste();
             GuardarYLiquidarFaseActual(pausarCronometro: true);
 
             if (Window.GetWindow(this) is WidgetWindow widgetWindow)
@@ -405,6 +458,7 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
         private void MenuItemGuardarYLista_Click(object sender, RoutedEventArgs e)
         {
             _timerRelojUI.Stop();
+            FinalizarPausaSiExiste();
             GuardarYLiquidarFaseActual(pausarCronometro: true);
 
             if (Window.GetWindow(this) is WidgetWindow widgetWindow)
@@ -429,6 +483,7 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
 
             if (dialog.ShowDialog() == true)
             {
+                FinalizarPausaSiExiste();
                 GuardarYLiquidarFaseActual(pausarCronometro: true);
                 actividadRepo.ActualizarEstado(actividad.Id, 1);
 
@@ -533,6 +588,8 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
         private void PausarYGuardarSesionPrincipal()
         {
             _timerRelojUI.Stop();
+            FinalizarPausaSiExiste();
+
             var sesion = _sesionRepo.ObtenerSesion();
 
             if (sesion.EstadoCronometro == 1)
@@ -548,16 +605,16 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
             _fechaInicioTramo = null;
         }
         #endregion
+
         private void MenuItemGuardarEIrAPanel_Click(object sender, RoutedEventArgs e)
         {
             _timerRelojUI.Stop();
+            FinalizarPausaSiExiste();
             GuardarYLiquidarFaseActual(pausarCronometro: true);
 
-            // Abre el Dashboard principal
             MainWindow mainWindow = new MainWindow();
             mainWindow.Show();
 
-            // Cierra la ventana del Widget
             if (Window.GetWindow(this) is WidgetWindow widgetWindow)
             {
                 widgetWindow.Close();
@@ -567,16 +624,15 @@ namespace SistemaMonitoreoProyectos.Views.UserControls
         private void MenuItemGuardarYCrearActividad_Click(object sender, RoutedEventArgs e)
         {
             _timerRelojUI.Stop();
+            FinalizarPausaSiExiste();
             GuardarYLiquidarFaseActual(pausarCronometro: true);
 
-            // Carga la vista de creación de tareas dentro del Widget
             if (Window.GetWindow(this) is WidgetWindow widgetWindow)
             {
                 widgetWindow.CargarVistaCrearTarea();
             }
         }
     }
-
     public class FaseItemView
     {
         public int Id { get; set; }
