@@ -250,5 +250,91 @@ namespace SistemaMonitoreoProyectos
             nuevoWidget.Show();
             Close();
         }
+
+        private void BotonExportarCSV_Click(object sender, RoutedEventArgs e)
+        {
+            if (_actividadSeleccionadaId == 0)
+            {
+                MessageBox.Show("Selecciona una actividad para exportar.", "Atención", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var actividad = _actividadRepo.ObtenerPorId(_actividadSeleccionadaId);
+            if (actividad == null) return;
+
+            var planRepo = new PlanFaseRepository();
+            var esfuerzoRepo = new RegistroEsfuerzoRepository();
+            var defectoRepo = new RegistroDefectoRepository();
+            var faseRepo = new FaseRepository();
+
+            var fasesCatalog = faseRepo.ObtenerTodas().OrderBy(f => f.Orden).ToList();
+            var planes = planRepo.ObtenerPorActividad(actividad.Id);
+            var esfuerzos = esfuerzoRepo.ObtenerPorActividad(actividad.Id);
+            var defectos = defectoRepo.ObtenerPorActividad(actividad.Id);
+
+            var saveFileDialog = new SaveFileDialog
+            {
+                Filter = "Archivo CSV (*.csv)|*.csv",
+                FileName = $"Datos_PSP_{actividad.Proyecto.Replace(" ", "_")}_{DateTime.Now:yyyyMMdd}.csv",
+                Title = "Exportar Datos de Actividad a CSV"
+            };
+
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                try
+                {
+                    var sb = new System.Text.StringBuilder();
+
+                    // 1. Resumen Ejecutivo Global
+                    sb.AppendLine("ID_Actividad;Proyecto;Responsable;Estado;Tiempo_Estimado_Min;Tiempo_Real_Min;Tiempo_Retrabajo_Min;Defectos_Totales;Fugas_Severas;Factor_Calibracion");
+
+                    int estMinTotal = planes != null && planes.Count > 0 ? planes.Sum(p => p.TiempoEstimadoMinutos) : 0;
+                    int realMinTotal = esfuerzos != null ? (int)Math.Round(esfuerzos.Sum(e => e.MinutosEfectivos) / 60.0) : 0;
+                    int retrabajoMinTotal = defectos != null ? (int)Math.Round(defectos.Sum(d => d.TiempoCorreccionMinutos) / 60.0) : 0;
+                    int totalDefectos = defectos?.Count ?? 0;
+
+                    var ordenFases = fasesCatalog.ToDictionary(f => (long)f.Id, f => f.Orden);
+                    int fugasSeveras = defectos != null ? defectos.Count(d =>
+                    {
+                        int ordOrig = ordenFases.ContainsKey(d.FaseOrigenId) ? ordenFases[d.FaseOrigenId] : 0;
+                        int ordDet = ordenFases.ContainsKey(d.FaseDeteccionId) ? ordenFases[d.FaseDeteccionId] : 0;
+                        return (ordDet - ordOrig) >= 2;
+                    }) : 0;
+
+                    double factorCalib = estMinTotal > 0 ? (double)realMinTotal / estMinTotal : 1.0;
+                    string estado = actividad.Estado == 1 ? "Completado" : "En Curso";
+
+                    sb.AppendLine($"{actividad.Id};\"{actividad.Proyecto}\";\"{actividad.Responsable}\";{estado};{estMinTotal};{realMinTotal};{retrabajoMinTotal};{totalDefectos};{fugasSeveras};{factorCalib:0.00}");
+
+                    // 2. Separador de Sección
+                    sb.AppendLine();
+                    sb.AppendLine("DESGLOSE POR FASES");
+                    sb.AppendLine("Fase;Tiempo_Estimado_Min;Tiempo_Real_Min;Desviacion_Min");
+
+                    // 3. Filas de Desglose
+                    foreach (var fase in fasesCatalog)
+                    {
+                        int estMin = planes?.FirstOrDefault(p => p.FaseId == fase.Id)?.TiempoEstimadoMinutos ?? 0;
+                        int realSeg = esfuerzos?.Where(e => e.FaseId == fase.Id).Sum(e => e.MinutosEfectivos) ?? 0;
+                        int realMin = (int)Math.Round(realSeg / 60.0);
+                        int desvMin = realMin - estMin;
+
+                        if (estMin > 0 || realMin > 0)
+                        {
+                            sb.AppendLine($"\"{fase.Nombre}\";{estMin};{realMin};{desvMin}");
+                        }
+                    }
+
+                    // Guardar con codificación UTF-8 con BOM para correcta apertura directa en Microsoft Excel
+                    System.IO.File.WriteAllText(saveFileDialog.FileName, sb.ToString(), System.Text.Encoding.UTF8);
+
+                    MessageBox.Show("Archivo CSV generado exitosamente.", "Exportación Completa", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error al exportar a CSV: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
     }
 }

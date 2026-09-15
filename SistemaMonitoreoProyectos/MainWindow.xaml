@@ -114,11 +114,28 @@
                     </Button>
                 </StackPanel>
 
-                <!-- Icono Configuración Bottom -->
-                <!-- Icono Exportación PDF / Configuración Bottom -->
-<Button Grid.Row="2" x:Name="BotonConfiguracion" Style="{StaticResource EstiloBotonSecundario}" Width="44" Height="44" Padding="0" HorizontalAlignment="Center" ToolTip="Exportar Reporte PDF">
-    <TextBlock Text="&#xE713;" FontFamily="Segoe MDL2 Assets" FontSize="18"/>
-</Button>
+                <!-- PANEL DERECHO: ICONOS DE EXPORTACIÓN Y CONFIGURACIÓN -->
+<StackPanel Grid.Row="2" HorizontalAlignment="Center">
+    
+    <!-- Icono Hoja de Cálculo / Tabla (&#xE1D3;) -->
+    <Button x:Name="BotonExportarCSV" 
+            Style="{StaticResource EstiloBotonSecundario}" 
+            Width="44" Height="44" Padding="0" 
+            Margin="0,0,0,12" 
+            ToolTip="Exportar Datos a CSV" 
+            Click="BotonExportarCSV_Click">
+        <TextBlock Text="&#xE1D3;" FontFamily="Segoe MDL2 Assets" FontSize="18" Foreground="#10B981"/>
+    </Button>
+
+    <!-- Icono Documento Imprimible (&#xE8A5;) -->
+    <Button x:Name="BotonConfiguracion" 
+            Style="{StaticResource EstiloBotonSecundario}" 
+            Width="44" Height="44" Padding="0" 
+            ToolTip="Exportar Reporte PDF">
+        <TextBlock Text="&#xE8A5;" FontFamily="Segoe MDL2 Assets" FontSize="18" Foreground="#60A5FA"/>
+    </Button>
+
+</StackPanel>
             </Grid>
         </Border>
     </Grid>
