@@ -115,9 +115,20 @@
                 </StackPanel>
 
                 <!-- PANEL DERECHO: ICONOS DE EXPORTACIÓN Y CONFIGURACIÓN -->
+<!-- PANEL DERECHO: RESPALDOS Y EXPORTACIÓN -->
 <StackPanel Grid.Row="2" HorizontalAlignment="Center">
     
-    <!-- Icono Hoja de Cálculo / Tabla (&#xE1D3;) -->
+    <!-- Botón Backup / Restauración (Arriba de CSV) -->
+    <Button x:Name="BotonBackup" 
+            Style="{StaticResource EstiloBotonSecundario}" 
+            Width="44" Height="44" Padding="0" 
+            Margin="0,0,0,12" 
+            ToolTip="Gestión de Respaldos e Importación (JSON)" 
+            Click="BotonBackup_Click">
+        <TextBlock Text="&#xE72D;" FontFamily="Segoe MDL2 Assets" FontSize="18" Foreground="#F59E0B"/>
+    </Button>
+
+    <!-- Botón Exportar CSV -->
     <Button x:Name="BotonExportarCSV" 
             Style="{StaticResource EstiloBotonSecundario}" 
             Width="44" Height="44" Padding="0" 
@@ -127,12 +138,13 @@
         <TextBlock Text="&#xE1D3;" FontFamily="Segoe MDL2 Assets" FontSize="18" Foreground="#10B981"/>
     </Button>
 
-    <!-- Icono Documento Imprimible (&#xE8A5;) -->
+    <!-- Botón Exportar PDF -->
     <Button x:Name="BotonConfiguracion" 
             Style="{StaticResource EstiloBotonSecundario}" 
             Width="44" Height="44" Padding="0" 
-            ToolTip="Exportar Reporte PDF">
-        <TextBlock Text="&#xE8A5;" FontFamily="Segoe MDL2 Assets" FontSize="18" Foreground="#60A5FA"/>
+            ToolTip="Exportar Reporte Ejecutivo PDF"
+            Click="BotonConfiguracion_Click">
+        <TextBlock Text="&#xE74E;" FontFamily="Segoe MDL2 Assets" FontSize="18" Foreground="#60A5FA"/>
     </Button>
 
 </StackPanel>

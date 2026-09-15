@@ -383,5 +383,17 @@ namespace SistemaMonitoreoProyectos
                 }
             }
         }
+        private void BotonBackup_Click(object sender, RoutedEventArgs e)
+        {
+            var backupModal = new SistemaMonitoreoProyectos.Views.Dialogs.BackupWindow
+            {
+                Owner = this
+            };
+
+            if (backupModal.ShowDialog() == true)
+            {
+                CargarListaProyectos(); // Recarga las tarjetas si se importó un proyecto nuevo
+            }
+        }
     }
 }
