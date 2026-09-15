@@ -73,47 +73,52 @@ namespace SistemaMonitoreoProyectos
             var planRepo = new PlanFaseRepository();
             var esfuerzoRepo = new RegistroEsfuerzoRepository();
             var defectoRepo = new RegistroDefectoRepository();
-
-            // NUEVO: Instanciamos el repositorio de Fases para obtener su "Orden"
             var faseRepo = new FaseRepository();
 
+            var fasesCatalog = faseRepo.ObtenerTodas().OrderBy(f => f.Orden).ToList();
             var planes = planRepo.ObtenerPorActividad(actividad.Id);
             var esfuerzos = esfuerzoRepo.ObtenerPorActividad(actividad.Id);
             var defectos = defectoRepo.ObtenerPorActividad(actividad.Id);
 
-            // NUEVO: Diccionario para mapear ID de Fase -> Orden de Fase
-            var ordenFases = faseRepo.ObtenerTodas().ToDictionary(f => (long)f.Id, f => f.Orden);
+            var ordenFases = fasesCatalog.ToDictionary(f => (long)f.Id, f => f.Orden);
 
-            // 1. El tiempo estimado SÍ está en minutos (desde WidgetCreateTaskView)
-            int tiempoEstimadoMin = planes != null && planes.Count > 0
-                ? planes.Sum(p => p.TiempoEstimadoMinutos)
-                : 1980;
+            // 1. Recopilar métricas globales corrigiendo conversión de BD (Segundos -> Minutos)
+            int tiempoEstimadoMin = planes != null && planes.Count > 0 ? planes.Sum(p => p.TiempoEstimadoMinutos) : 0;
+            int tiempoRealMin = esfuerzos != null ? (int)Math.Round(esfuerzos.Sum(e => e.MinutosEfectivos) / 60.0) : 0;
+            int tiempoRetrabajoMin = defectos != null ? (int)Math.Round(defectos.Sum(d => d.TiempoCorreccionMinutos) / 60.0) : 0;
 
-            // 2. CORRECCIÓN: Los esfuerzos están en SEGUNDOS en la BD. Dividimos entre 60.
-            int tiempoRealMin = esfuerzos != null
-                ? (int)Math.Round(esfuerzos.Sum(e => e.MinutosEfectivos) / 60.0)
-                : 0;
+            int defectosFugaSevera = defectos != null ? defectos.Count(d =>
+            {
+                int ordOrigen = ordenFases.ContainsKey(d.FaseOrigenId) ? ordenFases[d.FaseOrigenId] : 0;
+                int ordDeteccion = ordenFases.ContainsKey(d.FaseDeteccionId) ? ordenFases[d.FaseDeteccionId] : 0;
+                return (ordDeteccion - ordOrigen) >= 2;
+            }) : 0;
 
-            // 3. CORRECCIÓN: El retrabajo está en SEGUNDOS en la BD. Dividimos entre 60.
-            int tiempoRetrabajoMin = defectos != null
-                ? (int)Math.Round(defectos.Sum(d => d.TiempoCorreccionMinutos) / 60.0)
-                : 0;
+            // 2. Armar Lista de Desglose de Fases (Línea Base Histórica)
+            var listaFasesReporte = new System.Collections.Generic.List<FaseReporteDTO>();
+            foreach (var fase in fasesCatalog)
+            {
+                int estMin = planes?.FirstOrDefault(p => p.FaseId == fase.Id)?.TiempoEstimadoMinutos ?? 0;
+                int realSeg = esfuerzos?.Where(e => e.FaseId == fase.Id).Sum(e => e.MinutosEfectivos) ?? 0;
+                int realMin = (int)Math.Round(realSeg / 60.0);
 
-            // 4. CORRECCIÓN: Evaluamos el "Orden" del flujo PSP, no el ID de base de datos
-            int defectosFugaSevera = defectos != null
-                ? defectos.Count(d =>
+                // Solo mostrar la fase en la tabla si hubo plan o si hubo esfuerzo real registrado
+                if (estMin > 0 || realMin > 0)
                 {
-                    int ordOrigen = ordenFases.ContainsKey(d.FaseOrigenId) ? ordenFases[d.FaseOrigenId] : 0;
-                    int ordDeteccion = ordenFases.ContainsKey(d.FaseDeteccionId) ? ordenFases[d.FaseDeteccionId] : 0;
-                    return (ordDeteccion - ordOrigen) >= 2;
-                })
-                : 0;
+                    listaFasesReporte.Add(new FaseReporteDTO
+                    {
+                        NombreFase = fase.Nombre,
+                        MinutosEstimados = estMin,
+                        MinutosReales = realMin
+                    });
+                }
+            }
 
             var saveFileDialog = new SaveFileDialog
             {
                 Filter = "Archivo PDF (*.pdf)|*.pdf",
-                FileName = $"Reporte_PSP_{actividad.Proyecto.Replace(" ", "_")}_{DateTime.Now:yyyyMMdd}.pdf",
-                Title = "Guardar Reporte Ejecutivo PSP"
+                FileName = $"Reporte_LineaBase_{actividad.Proyecto.Replace(" ", "_")}_{DateTime.Now:yyyyMMdd}.pdf",
+                Title = "Guardar Reporte Línea Base PSP"
             };
 
             if (saveFileDialog.ShowDialog() == true)
@@ -128,7 +133,9 @@ namespace SistemaMonitoreoProyectos
                         TiempoEstimadoMinutos = tiempoEstimadoMin,
                         TiempoRealMinutos = tiempoRealMin,
                         TiempoRetrabajoMinutos = tiempoRetrabajoMin,
-                        DefectosFugaSeveraCount = defectosFugaSevera
+                        TotalDefectos = defectos?.Count ?? 0,
+                        DefectosFugaSeveraCount = defectosFugaSevera,
+                        FasesDetalle = listaFasesReporte // Pasamos el array de fases al reporte
                     };
 
                     var documento = new ReporteActividadDocument(metricasDto);
