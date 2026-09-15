@@ -115,9 +115,10 @@
                 </StackPanel>
 
                 <!-- Icono Configuración Bottom -->
-                <Button Grid.Row="2" x:Name="BotonConfiguracion" Style="{StaticResource EstiloBotonSecundario}" Width="44" Height="44" Padding="0" HorizontalAlignment="Center">
-                    <TextBlock Text="&#xE713;" FontFamily="Segoe MDL2 Assets" FontSize="18"/>
-                </Button>
+                <!-- Icono Exportación PDF / Configuración Bottom -->
+<Button Grid.Row="2" x:Name="BotonConfiguracion" Style="{StaticResource EstiloBotonSecundario}" Width="44" Height="44" Padding="0" HorizontalAlignment="Center" ToolTip="Exportar Reporte PDF">
+    <TextBlock Text="&#xE713;" FontFamily="Segoe MDL2 Assets" FontSize="18"/>
+</Button>
             </Grid>
         </Border>
     </Grid>

@@ -1,19 +1,25 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using QuestPDF.Fluent;
+using QuestPDF.Infrastructure;
+using SistemaMonitoreoProyectos.Models;
+using SistemaMonitoreoProyectos.Repositories;
+using SistemaMonitoreoProyectos.Reports;
+using SistemaMonitoreoProyectos.Views;
+using SistemaMonitoreoProyectos.Views.UserControls;
+using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
-using SistemaMonitoreoProyectos.Models;
-using SistemaMonitoreoProyectos.Repositories;
-using SistemaMonitoreoProyectos.Views;
-using SistemaMonitoreoProyectos.Views.UserControls;
+using System.Linq;
 
 namespace SistemaMonitoreoProyectos
 {
     public partial class MainWindow : Window
     {
-        // Importación de API de Windows para forzar el título en Modo Oscuro Nativo
         [DllImport("dwmapi.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
 
@@ -27,22 +33,117 @@ namespace SistemaMonitoreoProyectos
         public MainWindow()
         {
             InitializeComponent();
+
+            // Configurar licencia Community de QuestPDF (Gratuito y legal)
+            QuestPDF.Settings.License = LicenseType.Community;
+            QuestPDF.Settings.UseSystemFonts = true;
+
             SourceInitialized += MainWindow_SourceInitialized;
             Loaded += (s, e) => CargarListaProyectos();
 
             BotonNavegarOverview.Click += (s, e) => CambiarTab("Overview");
             BotonNavegarTimeLog.Click += (s, e) => CambiarTab("TimeLog");
             BotonNavegarDefectLog.Click += (s, e) => CambiarTab("DefectLog");
+
+            // Asignar evento de exportación PDF
+            BotonConfiguracion.Click += BotonConfiguracion_Click;
         }
 
         private void MainWindow_SourceInitialized(object? sender, EventArgs e)
         {
-            // Activa la barra de título oscura nativa manteniendo los botones de Windows y el resize normal
             var helper = new WindowInteropHelper(this);
-            int darkMode = 1; // 1 = True
+            int darkMode = 1;
             if (DwmSetWindowAttribute(helper.Handle, DWMWA_USE_IMMERSIVE_DARK_MODE, ref darkMode, sizeof(int)) != 0)
             {
                 DwmSetWindowAttribute(helper.Handle, DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1, ref darkMode, sizeof(int));
+            }
+        }
+
+        private void BotonConfiguracion_Click(object sender, RoutedEventArgs e)
+        {
+            if (_actividadSeleccionadaId == 0)
+            {
+                MessageBox.Show("Selecciona una actividad para exportar.", "Atención", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var actividad = _actividadRepo.ObtenerPorId(_actividadSeleccionadaId);
+            if (actividad == null) return;
+
+            var planRepo = new PlanFaseRepository();
+            var esfuerzoRepo = new RegistroEsfuerzoRepository();
+            var defectoRepo = new RegistroDefectoRepository();
+
+            // NUEVO: Instanciamos el repositorio de Fases para obtener su "Orden"
+            var faseRepo = new FaseRepository();
+
+            var planes = planRepo.ObtenerPorActividad(actividad.Id);
+            var esfuerzos = esfuerzoRepo.ObtenerPorActividad(actividad.Id);
+            var defectos = defectoRepo.ObtenerPorActividad(actividad.Id);
+
+            // NUEVO: Diccionario para mapear ID de Fase -> Orden de Fase
+            var ordenFases = faseRepo.ObtenerTodas().ToDictionary(f => (long)f.Id, f => f.Orden);
+
+            // 1. El tiempo estimado SÍ está en minutos (desde WidgetCreateTaskView)
+            int tiempoEstimadoMin = planes != null && planes.Count > 0
+                ? planes.Sum(p => p.TiempoEstimadoMinutos)
+                : 1980;
+
+            // 2. CORRECCIÓN: Los esfuerzos están en SEGUNDOS en la BD. Dividimos entre 60.
+            int tiempoRealMin = esfuerzos != null
+                ? (int)Math.Round(esfuerzos.Sum(e => e.MinutosEfectivos) / 60.0)
+                : 0;
+
+            // 3. CORRECCIÓN: El retrabajo está en SEGUNDOS en la BD. Dividimos entre 60.
+            int tiempoRetrabajoMin = defectos != null
+                ? (int)Math.Round(defectos.Sum(d => d.TiempoCorreccionMinutos) / 60.0)
+                : 0;
+
+            // 4. CORRECCIÓN: Evaluamos el "Orden" del flujo PSP, no el ID de base de datos
+            int defectosFugaSevera = defectos != null
+                ? defectos.Count(d =>
+                {
+                    int ordOrigen = ordenFases.ContainsKey(d.FaseOrigenId) ? ordenFases[d.FaseOrigenId] : 0;
+                    int ordDeteccion = ordenFases.ContainsKey(d.FaseDeteccionId) ? ordenFases[d.FaseDeteccionId] : 0;
+                    return (ordDeteccion - ordOrigen) >= 2;
+                })
+                : 0;
+
+            var saveFileDialog = new SaveFileDialog
+            {
+                Filter = "Archivo PDF (*.pdf)|*.pdf",
+                FileName = $"Reporte_PSP_{actividad.Proyecto.Replace(" ", "_")}_{DateTime.Now:yyyyMMdd}.pdf",
+                Title = "Guardar Reporte Ejecutivo PSP"
+            };
+
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                try
+                {
+                    var metricasDto = new ReporteMetricsDTO
+                    {
+                        ActividadId = actividad.Id,
+                        Proyecto = actividad.Proyecto,
+                        EsCompletado = actividad.Estado == 1,
+                        TiempoEstimadoMinutos = tiempoEstimadoMin,
+                        TiempoRealMinutos = tiempoRealMin,
+                        TiempoRetrabajoMinutos = tiempoRetrabajoMin,
+                        DefectosFugaSeveraCount = defectosFugaSevera
+                    };
+
+                    var documento = new ReporteActividadDocument(metricasDto);
+                    documento.GeneratePdf(saveFileDialog.FileName);
+
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = saveFileDialog.FileName,
+                        UseShellExecute = true
+                    });
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error al generar PDF: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
         }
 
@@ -67,7 +168,7 @@ namespace SistemaMonitoreoProyectos
                     BorderBrush = esSeleccionada ? (Brush)FindResource("BrocheAcentoPrimario") : (Brush)FindResource("BrocheBordeTarjeta"),
                     Margin = new Thickness(0, 0, 0, 10),
                     Padding = new Thickness(12),
-                    Cursor = System.Windows.Input.Cursors.Hand
+                    Cursor = Cursors.Hand
                 };
 
                 var sp = new StackPanel { Orientation = Orientation.Horizontal };
@@ -78,7 +179,7 @@ namespace SistemaMonitoreoProyectos
                     FontFamily = new FontFamily("Segoe MDL2 Assets"),
                     FontSize = 14,
                     Foreground = (Brush)FindResource("BrocheAcentoPrimario"),
-                    VerticalAlignment = VerticalAlignment.Center
+                    VerticalAlignment = System.Windows.VerticalAlignment.Center // Corregido
                 };
 
                 var text = new TextBlock
@@ -86,7 +187,7 @@ namespace SistemaMonitoreoProyectos
                     Text = act.Proyecto,
                     Foreground = (Brush)FindResource("BrocheTextoPrincipal"),
                     FontWeight = FontWeights.Bold,
-                    VerticalAlignment = VerticalAlignment.Center
+                    VerticalAlignment = System.Windows.VerticalAlignment.Center // Corregido
                 };
 
                 sp.Children.Add(icon);
