@@ -9,5 +9,6 @@ namespace SistemaMonitoreoProyectos.Repositories
         List<Actividad> ObtenerTodas();
         Actividad? ObtenerPorId(int id);
         void ActualizarEstado(int actividadId, int nuevoEstado);
+        void Eliminar(int id);
     }
 }

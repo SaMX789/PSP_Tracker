@@ -19,6 +19,7 @@ namespace SistemaMonitoreoProyectos.Reports
     {
         public int ActividadId { get; set; }
         public string Proyecto { get; set; } = string.Empty;
+        public string Responsable { get; set; } = string.Empty;
         public bool EsCompletado { get; set; }
         public int TiempoEstimadoMinutos { get; set; }
         public int TiempoRealMinutos { get; set; }
@@ -93,8 +94,20 @@ namespace SistemaMonitoreoProyectos.Reports
                 // Tarjeta Principal
                 col.Item().Background("#F8FAFC").Padding(10).Border(1).BorderColor("#E2E8F0").Column(c =>
                 {
-                    c.Item().Text("PROYECTO ANALIZADO").FontSize(8).Bold().FontColor("#64748B");
-                    c.Item().Text(Metricas.Proyecto).FontSize(14).Bold().FontColor("#0F172A");
+                    c.Item().Row(r =>
+                    {
+                        r.RelativeItem().Column(sub =>
+                        {
+                            sub.Item().Text("PROYECTO ANALIZADO").FontSize(8).Bold().FontColor("#64748B");
+                            sub.Item().Text(Metricas.Proyecto).FontSize(14).Bold().FontColor("#0F172A");
+                        });
+
+                        r.ConstantItem(180).AlignRight().Column(sub =>
+                        {
+                            sub.Item().Text("RESPONSABLE").FontSize(8).Bold().FontColor("#64748B");
+                            sub.Item().Text(Metricas.Responsable).FontSize(11).Bold().FontColor("#3B82F6");
+                        });
+                    });
                 });
 
                 // KPIs Superiores

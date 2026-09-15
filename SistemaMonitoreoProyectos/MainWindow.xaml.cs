@@ -129,6 +129,7 @@ namespace SistemaMonitoreoProyectos
                     {
                         ActividadId = actividad.Id,
                         Proyecto = actividad.Proyecto,
+                        Responsable = actividad.Responsable,
                         EsCompletado = actividad.Estado == 1,
                         TiempoEstimadoMinutos = tiempoEstimadoMin,
                         TiempoRealMinutos = tiempoRealMin,
@@ -178,6 +179,19 @@ namespace SistemaMonitoreoProyectos
                     Cursor = Cursors.Hand
                 };
 
+                // --- AGREGAR MENÚ CONTEXTUAL PARA CLIC DERECHO ---
+                var contextMenu = new ContextMenu();
+                var menuEliminar = new MenuItem
+                {
+                    Header = "🗑 Eliminar Actividad",
+                    Foreground = (Brush)new BrushConverter().ConvertFrom("#FF4D4D")!
+                };
+
+                menuEliminar.Click += (s, e) => EliminarActividadConRegla(act.Id, act.Proyecto);
+                contextMenu.Items.Add(menuEliminar);
+                border.ContextMenu = contextMenu;
+                // ------------------------------------------------
+
                 var sp = new StackPanel { Orientation = Orientation.Horizontal };
 
                 var icon = new TextBlock
@@ -186,7 +200,7 @@ namespace SistemaMonitoreoProyectos
                     FontFamily = new FontFamily("Segoe MDL2 Assets"),
                     FontSize = 14,
                     Foreground = (Brush)FindResource("BrocheAcentoPrimario"),
-                    VerticalAlignment = System.Windows.VerticalAlignment.Center // Corregido
+                    VerticalAlignment = System.Windows.VerticalAlignment.Center 
                 };
 
                 var text = new TextBlock
@@ -194,7 +208,7 @@ namespace SistemaMonitoreoProyectos
                     Text = act.Proyecto,
                     Foreground = (Brush)FindResource("BrocheTextoPrincipal"),
                     FontWeight = FontWeights.Bold,
-                    VerticalAlignment = System.Windows.VerticalAlignment.Center // Corregido
+                    VerticalAlignment = System.Windows.VerticalAlignment.Center 
                 };
 
                 sp.Children.Add(icon);
@@ -212,6 +226,39 @@ namespace SistemaMonitoreoProyectos
             }
 
             RenderizarVistaActual();
+        }
+        private void EliminarActividadConRegla(int actividadId, string nombreProyecto)
+        {
+            var esfuerzoRepo = new RegistroEsfuerzoRepository();
+            int totalSegundos = esfuerzoRepo.ObtenerMinutosTotalesPorActividad(actividadId);
+
+            if (totalSegundos < 600) // Menos de 10 minutos
+            {
+                var result = MessageBox.Show(
+                    $"¿Deseas eliminar permanentemente '{nombreProyecto}'?\n\nAl tener menos de 10 minutos de esfuerzo registrado, no afecta la línea base.",
+                    "Confirmar Eliminación",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Warning);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    // Llamada limpia al repositorio
+                    _actividadRepo.Eliminar(actividadId);
+
+                    if (_actividadSeleccionadaId == actividadId)
+                        _actividadSeleccionadaId = 0;
+
+                    CargarListaProyectos();
+                }
+            }
+            else
+            {
+                MessageBox.Show(
+                    $"La actividad '{nombreProyecto}' contiene más de 10 minutos de registros históricos.\n\nPara proteger la integridad de la línea base gerencial, no se permite su eliminación permanente.",
+                    "Protección de Datos Históricos",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+            }
         }
 
         private void CambiarTab(string tab)

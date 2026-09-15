@@ -95,5 +95,13 @@ namespace SistemaMonitoreoProyectos.Repositories
 
             comando.ExecuteNonQuery();
         }
+        public void Eliminar(int id)
+        {
+            using var con = ConexionDB.ObtenerConexion();
+            using var cmd = con.CreateCommand();
+            cmd.CommandText = "DELETE FROM Actividades WHERE Id = @id;";
+            cmd.Parameters.AddWithValue("@id", id);
+            cmd.ExecuteNonQuery();
+        }
     }
 }
